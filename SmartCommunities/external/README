@@ -1,0 +1,18 @@
+These external dependencies for SmartCommunities are not included in the repository and must be manually obtained:
+
+Dependency:              Java Agent DEvelopment Framework (JADE)
+Version:                 4.1
+Download:                http://jade.tilab.it
+Installation directory:  external/jade-4.1
+
+Dependency:              Simple Logging Facade for Java (SLF4J)
+Version:                 1.6.4
+Download:                http://www.slf4j.org
+Installation directory:  external/slf4j-1.6.4
+
+Dependency:              Apache log4j
+Version:                 1.2.16
+Download:                http://logging.apache.org/log4j/1.2/download.html
+Installation directory:  external/apache-log4j-1.12.16
+
+   
