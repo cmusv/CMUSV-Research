@@ -13,7 +13,7 @@ public class ReceiveMessageBehaviour
       }
 
    /**
-    *   Receive inbound messages.
+    *   Receive inbound messages and take appropriate action.
     */
 
    @Override
