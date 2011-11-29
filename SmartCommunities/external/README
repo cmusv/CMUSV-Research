@@ -14,5 +14,3 @@ Dependency:              Apache log4j
 Version:                 1.2.16
 Download:                http://logging.apache.org/log4j/1.2/download.html
 Installation directory:  external/apache-log4j-1.12.16
-
-   
