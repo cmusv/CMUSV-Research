@@ -4,6 +4,12 @@ import edu.cmu.smartcommunities.jade.core.Agent;
 import edu.cmu.smartcommunities.jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 
+/**
+ *   This class is responsible for receiving messages.
+ *
+ *   @author mcsmith
+ */
+
 public class ReceiveMessageBehaviour
    extends CyclicBehaviour
    {
