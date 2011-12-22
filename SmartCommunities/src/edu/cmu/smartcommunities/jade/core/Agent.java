@@ -20,6 +20,11 @@ public class Agent
       {
       logger.trace("Begin setExtendedProperties");
       extendedProperties.addProperties(arguments);
+      for (Object object:  extendedProperties.keySet())
+         {
+         logger.debug("Property name:  " + object.toString());
+         logger.debug("Property value: " + extendedProperties.get(object).toString());
+         }
       logger.trace("End   setExtendedProperties");
       }
 

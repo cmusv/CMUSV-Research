@@ -1,0 +1,32 @@
+grant codebase "file:${Jade.jar}"
+   {
+   permission java.security.AllPermission;
+   };
+grant codebase "file:${JadeSecurity.jar}"
+   {
+   permission java.security.AllPermission;
+   };
+
+// --- Startup example ---
+// --- Policy on the MAIN container ---
+
+grant principal jade.security.Name "mcsmith"
+   {
+   permission jade.security.PlatformPermission  "", "create, kill";
+   permission jade.security.ContainerPermission "", "create, kill";
+   permission jade.security.AgentPermission     "", "create, kill";
+   permission jade.security.AgentPermission     "", "resume, suspend";
+   permission jade.security.AMSPermission       "", "deregister, modify, register";
+   permission jade.security.MessagePermission   "", "send-to";
+   };
+
+grant principal jade.security.Name "mcsmith",
+      principal jade.security.Name "mlgriss"
+   {
+   permission jade.security.ContainerPermission "container-owner=${user.name}",                                                      "create, kill";
+   permission jade.security.AgentPermission     "agent-owner=${user.name}, container-owner=${user.name}, agent-name=${user.name}-*", "create";
+   permission jade.security.AgentPermission     "agent-owner=${user.name}",                                                          "kill, resume, suspend";
+   permission jade.security.AMSPermission       "agent-owner=${user.name}",                                                          "deregister, modify, register";
+   permission jade.security.MessagePermission   "",                                                                                  "send-to";
+   };
+

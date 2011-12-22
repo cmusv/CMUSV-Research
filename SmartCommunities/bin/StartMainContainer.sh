@@ -1,12 +1,5 @@
 #!/bin/bash
 #
-#   Starts a main container (backup or master).
+#   Starts a (backup or master) main container using the provided configuration.
 #
-#   Define the required class locations.
-#
-classpath=external/jade-4.1/lib/jade.jar
-classpath=${classpath}:external/jade-4.1/lib/commons-codec/commons-codec-1.3.jar
-#
-#   Start the main container using the provided configuration file.
-#
-java -cp ${classpath} jade.Boot -conf "${1}"
+java -cp ${JadeClasspath} -DJade.jar=${JadeJar} -DJadeSecurity.jar=${JadeSecurityJar} jade.Boot -conf "${1}"

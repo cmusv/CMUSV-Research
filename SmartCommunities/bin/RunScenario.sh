@@ -27,22 +27,24 @@ then
          export HOSTNAME=$(hostname)
          if [ ${MasterMainContainerHost} = ${HOSTNAME} ]
          then
-            bin/StartMainContainer.sh scenarios/"${scenario}"/MasterMainContainer.properties &
+            bash -xv bin/StartMainContainer.sh scenarios/"${scenario}"/MasterMainContainer.properties &
             export ProximalMainContainerHost=${MasterMainContainerHost}
             export ProximalMainContainerPort=${MasterMainContainerPort}
          else
-            bin/StartMainContainer.sh scenarios/"${scenario}"/BackupMainContainer.properties &
+            bash -xv bin/StartMainContainer.sh scenarios/"${scenario}"/BackupMainContainer.properties &
             export ProximalMainContainerHost=${BackupMainContainerHost}
             export ProximalMainContainerPort=${BackupMainContainerPort}
          fi
-         sleep 10
-         #
-         #   Start the agent container.
-         #
-         bash -xv bin/StartAgentContainer.sh "${scenario}" &
+         sleep 5
          #
          #   Start the sniffer, if necessary.
          #
+         bash -xv bin/StartSnifferContainer.sh scenarios/"${scenario}"/SnifferContainer.properties &
+         sleep 5
+         #
+         #   Start the peripheral container.
+         #
+         bash -xv bin/StartPeripheralContainer.sh scenarios/"${scenario}"/PeripheralContainer.properties &
       else
          echo The file scenarios/${scenario}/ConfigureEnvironment.sh does not exist.
          exit 1
