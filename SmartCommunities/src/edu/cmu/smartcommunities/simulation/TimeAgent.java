@@ -6,49 +6,35 @@ import jade.core.ServiceException;
 import jade.core.behaviours.TickerBehaviour;
 import jade.core.messaging.TopicManagementHelper;
 import jade.lang.acl.ACLMessage;
-//import jade.lang.acl.MessageTemplate;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 public class TimeAgent
-   extends Agent // SubscribableServiceAgent
+   extends Agent
    {
-// private static final String          ONTOLOGY                 = "edu.cmu.smartcommunities.simulation.TimeAgent";
-   public  static final String          SERVICE_TYPE             = "TimeSimulation";
-// public  static final String          TIME_SIMULATION_ONTOLOGY = ONTOLOGY + ":" + SERVICE_TYPE;
-// public  static final MessageTemplate messageTemplate          = MessageTemplate.MatchOntology(TIME_SIMULATION_ONTOLOGY);
-   private static final long            serialVersionUID         = 3094307379768714926L;
-   private              long            simulatedTime            = 0;
+   private static final String className                = TimeAgent.class.getName();
+   private              long   clockTickInterval        = 0;
+   public  static final String iso8601DateTimeFormat    = "yyyy-MM-dd HH:mm:ss";
+   private              long   millisecondsPerClockTick = 0;
+   private static final long   serialVersionUID         = 3175025500104404418L;
+   public  static final String serviceType              = "TimeSimulation";
+   private              long   simulatedTime            = 0;
+   public  static final String timeSimulationOntology   = className + ":" + serviceType;
+   private              AID    timeSimulationTopic      = null;
 
    protected void setup()
       {
-      String startTimeString = "2011-12-01 00:00:00";
+      String startTimeString = "2012-01-01 00:00:00";
 
-   // serviceType = SERVICE_TYPE;
       super.setup();
-   // addBehaviour(new PassTimeBehaviour(this, extendedProperties, subscriberMap));
       try
          {
-         final long clockTickInterval        = extendedProperties.getIntProperty("ClockTickInterval", 1000);
-         final long millisecondsPerClockTick = extendedProperties.getIntProperty("MillisecondsPerClockTick", 1000);
-         final AID  topic                    = ((TopicManagementHelper) getHelper(TopicManagementHelper.SERVICE_NAME)).createTopic(SERVICE_TYPE);
-
+         clockTickInterval = extendedProperties.getIntProperty("ClockTickInterval", 1000);
+         millisecondsPerClockTick = extendedProperties.getIntProperty("MillisecondsPerClockTick", 1000);
          startTimeString = extendedProperties.getProperty("StartTime", startTimeString);
-         simulatedTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(startTimeString).getTime();
-         addBehaviour(new TickerBehaviour(this, clockTickInterval)
-            {
-            private static final long serialVersionUID = -1515261800639962675L;
-
-            public void onTick()
-               {
-               final ACLMessage aclMessage = new ACLMessage(ACLMessage.INFORM);
-
-               aclMessage.addReceiver(topic);
-               aclMessage.setContent("(time " + simulatedTime + ")");
-               simulatedTime += millisecondsPerClockTick;
-               myAgent.send(aclMessage);
-               }
-            });
+         simulatedTime = new SimpleDateFormat(iso8601DateTimeFormat).parse(startTimeString).getTime();
+         timeSimulationTopic = ((TopicManagementHelper) getHelper(TopicManagementHelper.SERVICE_NAME)).createTopic(serviceType);
+         addBehaviour(new SimulateTimePassageBehaviour(this, clockTickInterval));
          }
       catch (final ParseException parseException)
          {
@@ -57,15 +43,33 @@ public class TimeAgent
          }
       catch (final ServiceException serviceException)
          {
-         logger.error("Unable to create " + SERVICE_TYPE + " topic.",
+         logger.error("Unable to create " + serviceType + " topic.",
                       serviceException);
          }
       }
-   /*
-   public static AID getTopic(final jade.core.Agent agent)
-      throws ServiceException
+
+   private class SimulateTimePassageBehaviour
+      extends TickerBehaviour
       {
-      return ((TopicManagementHelper) agent.getHelper(TopicManagementHelper.SERVICE_NAME)).createTopic(SERVICE_TYPE);
+      private static final long serialVersionUID = 175622771312000339L;
+
+      public SimulateTimePassageBehaviour(final Agent agent,
+                                          final long  period)
+         {
+         super(agent,
+               period);
+         }
+
+      @Override
+      protected void onTick()
+         {
+         final ACLMessage outboundMessage = new ACLMessage(ACLMessage.INFORM);
+
+         outboundMessage.addReceiver(timeSimulationTopic);
+         outboundMessage.setContent("(time " + simulatedTime + ")");
+         outboundMessage.setOntology(timeSimulationOntology);
+         simulatedTime += millisecondsPerClockTick;
+         send(outboundMessage);
+         }
       }
-   */
    }

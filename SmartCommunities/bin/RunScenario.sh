@@ -2,7 +2,7 @@
 #
 #   This scripts runs a JADE scenario.
 #
-#   Verify that a senario name is provided.
+#   Verify that a scenario name is provided.
 #
 if [ ${#} -eq 1 ]
 then
@@ -27,11 +27,11 @@ then
          export HOSTNAME=$(hostname)
          if [ ${MasterMainContainerHost} = ${HOSTNAME} ]
          then
-            bash -xv bin/StartMainContainer.sh scenarios/"${scenario}"/MasterMainContainer.properties &
+            bin/StartMainContainer.sh scenarios/"${scenario}"/MasterMainContainer.properties &
             export ProximalMainContainerHost=${MasterMainContainerHost}
             export ProximalMainContainerPort=${MasterMainContainerPort}
          else
-            bash -xv bin/StartMainContainer.sh scenarios/"${scenario}"/BackupMainContainer.properties &
+            bin/StartMainContainer.sh scenarios/"${scenario}"/BackupMainContainer.properties &
             export ProximalMainContainerHost=${BackupMainContainerHost}
             export ProximalMainContainerPort=${BackupMainContainerPort}
          fi
@@ -39,12 +39,12 @@ then
          #
          #   Start the sniffer, if necessary.
          #
-         bash -xv bin/StartSnifferContainer.sh scenarios/"${scenario}"/SnifferContainer.properties &
-         sleep 5
+         bin/StartSnifferContainer.sh scenarios/"${scenario}"/SnifferContainer.properties &
+         sleep 2
          #
          #   Start the peripheral container.
          #
-         bash -xv bin/StartPeripheralContainer.sh scenarios/"${scenario}"/PeripheralContainer.properties &
+         bin/StartPeripheralContainer.sh scenarios/"${scenario}"/PeripheralContainer.properties &
       else
          echo The file scenarios/${scenario}/ConfigureEnvironment.sh does not exist.
          exit 1
