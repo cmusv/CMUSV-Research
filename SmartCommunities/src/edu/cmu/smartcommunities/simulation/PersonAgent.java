@@ -1,13 +1,15 @@
 package edu.cmu.smartcommunities.simulation;
 
 import edu.cmu.smartcommunities.jade.core.Agent;
-import edu.cmu.smartcommunities.utilities.Parser;
+// import edu.cmu.smartcommunities.utilities.Parser;
 import jade.core.AID;
 import jade.core.ServiceException;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.core.messaging.TopicManagementHelper;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.lang.acl.UnreadableException;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -20,13 +22,14 @@ public class PersonAgent
 // private              String                currentWorkSpaceAgentName  = null;
    private              DateFormat            dateTimeFormat             = new SimpleDateFormat(TimeAgent.iso8601DateTimeFormat);
    private              String                defaultWorkSpaceAgentName  = null;
-   public  static final String                entering                   = "(entering)";
-   public  static final String                leaving                    = "(leaving)";
+// public  static final String                entering                   = "(entering (time ";
+// public  static final String                leaving                    = "(leaving (time ";
    private        final String[]              meetingRoomAgentName       = new String[24];
    private              double                percentMeetingTime         = 0;
    private              Date                  preferredWorkStartDateTime = null;
    private              Date                  preferredWorkStopDateTime  = null;
-   public  static final String                physicalLocationOntology   = className + ":Physical Location"; 
+// public  static final String                physicalLocationOntology   = className + ":Physical Location"; 
+   private static final long                  serialVersionUID           = 9023344232278656873L;
    private              double                timeAllocatedToMeetings    = 0;
    private              TopicManagementHelper topicManagementHelper      = null;
    private              Date                  workStartDateTime          = null;
@@ -82,7 +85,8 @@ public class PersonAgent
    private class ManageMeetingsBehaviour
       extends CyclicBehaviour
       {
-      private        final AID        meetingCreationTopic;
+   // private        final AID        meetingCreationTopic;
+      private static final long serialVersionUID = -6090924341976674951L;
 
       public ManageMeetingsBehaviour(final Agent agent)
          {
@@ -102,7 +106,7 @@ public class PersonAgent
             }
          finally
             {
-            this.meetingCreationTopic = meetingCreationTopic;
+         // this.meetingCreationTopic = meetingCreationTopic;
             }
          }
 
@@ -120,11 +124,11 @@ public class PersonAgent
          else
             {
          // logger.debug("Receiving (" + inboundMessage.getPerformative() + "):  " + inboundMessage.getContent());
-            final String dateTimeString = new Parser(inboundMessage.getContent()).getRange(1, 2);
+         // final String dateTimeString = new Parser(inboundMessage.getContent()).getRange(1, 2);
 
             try
                {
-               final Date meetingStartDateTime = dateTimeFormat.parse(dateTimeString);
+               final Date meetingStartDateTime = (Date) inboundMessage.getContentObject();
                final int  meetingStartHour     = meetingStartDateTime.getHours();
 
                switch (inboundMessage.getPerformative())
@@ -156,7 +160,7 @@ public class PersonAgent
                            int        performative                  = ACLMessage.REJECT_PROPOSAL;
                      final String     scheduledMeetingRoomAgentName = meetingRoomAgentName[meetingStartHour];
 
-                     outboundMessage.setContent(inboundMessage.getContent());
+                     outboundMessage.setContentObject(meetingStartDateTime);
                      outboundMessage.setOntology(inboundMessage.getOntology());
                      if (scheduledMeetingRoomAgentName == null || scheduledMeetingRoomAgentName.equals(defaultWorkSpaceAgentName))
                         {
@@ -181,10 +185,18 @@ public class PersonAgent
                      }
                   }
                }
-            catch (final ParseException parserException)
+            catch (final IOException ioException)
                {
-               logger.error("Unable to parse meeting start time:  " + dateTimeString,
-                            parserException);
+               logger.error("Unable to set simulated date time content object:  " + ioException.getMessage(),
+                            ioException);
+               }
+         // catch (final ParseException parserException)
+            catch (final UnreadableException unreadableException)
+               {
+            // logger.error("Unable to parse meeting start time:  " + dateTimeString,
+            //              parserException);
+               logger.error("Unable to get simulated time content object:  " + unreadableException.getMessage(),
+                            unreadableException);
                }
             }
          logger.trace("End   ManageMeetingsBehaviour.action");
@@ -194,8 +206,9 @@ public class PersonAgent
    private class WorkBehaviour
       extends CyclicBehaviour
       {
-      private        final DateFormat      dateFormat          = new SimpleDateFormat(TimeAgent.iso8601DateTimeFormat);
+   // private        final DateFormat      dateFormat          = new SimpleDateFormat(TimeAgent.iso8601DateTimeFormat);
       private        final MessageTemplate messageTemplate     = MessageTemplate.MatchOntology(TimeAgent.timeSimulationOntology);
+      private static final long            serialVersionUID    = 1833830971141389258L;
       private              Date            simulatedDateTime   = null;
       private        final AID             timeSimulationTopic;
 
@@ -234,59 +247,65 @@ public class PersonAgent
             }
          else
             {
-            final String content           = inboundMessage.getContent();
-            final Date   simulatedDateTime = new Date(Long.parseLong(content.substring(content.indexOf(' ') + 1, content.indexOf(')'))));
+         // final String content           = inboundMessage.getContent();
+         // final Date   simulatedDateTime = new Date(Long.parseLong(content.substring(content.indexOf(' ') + 1, content.indexOf(')'))));
+            try
+               {
+               final Date simulatedDateTime = (Date) inboundMessage.getContentObject();
 
-         // logger.debug("It's now " + dateFormat.format(simulatedDateTime));
-            if (this.simulatedDateTime == null || (this.simulatedDateTime.getHours() > simulatedDateTime.getHours()))
-               {
-            // currentWorkSpaceAgentName = null;
-               workStartDateTime = preferredWorkStartDateTime; // TODO:  Add some randomness
-               workStopDateTime = preferredWorkStopDateTime; // TODO:  Add some randomness
-               for (int hour = 0; hour < meetingRoomAgentName.length; hour++)
+            // logger.debug("It's now " + dateFormat.format(simulatedDateTime));
+               if (this.simulatedDateTime == null || (this.simulatedDateTime.getHours() > simulatedDateTime.getHours()))
                   {
-                  meetingRoomAgentName[hour] = getDefaultWorkSpaceAgentName(hour);
-                  }
-               timeAllocatedToMeetings = 0;
-               }
-            else
-               {
-               if (this.simulatedDateTime.getHours() == 0 && simulatedDateTime.getHours() == 1) // 01:00
-                  {
-                  synchronized (PersonAgent.class)
+               // currentWorkSpaceAgentName = null;
+                  workStartDateTime = preferredWorkStartDateTime; // TODO:  Add some randomness
+                  workStopDateTime = preferredWorkStopDateTime; // TODO:  Add some randomness
+                  for (int hour = 0; hour < meetingRoomAgentName.length; hour++)
                      {
-                     for (int hour = 0; hour < meetingRoomAgentName.length; hour++)
+                     meetingRoomAgentName[hour] = getDefaultWorkSpaceAgentName(hour);
+                  // if (hour == 0) logger.debug("At hour " + hour + ", scheduled for " + meetingRoomAgentName[hour]);
+                     }
+                  timeAllocatedToMeetings = 0;
+                  }
+               else
+                  {
+                  final int hour = simulatedDateTime.getHours();
+
+                  if (this.simulatedDateTime.getHours() == 5 && hour == 6) // 06:00
+                     {
+                     synchronized (PersonAgent.class)
                         {
-                        logger.debug("At hour " + hour + ", scheduled for " + meetingRoomAgentName[hour]);
+                        for (int i = 0; i < meetingRoomAgentName.length; i++)
+                           {
+                           logger.debug("At hour " + i + ", scheduled for " + meetingRoomAgentName[i]);
+                           }
                         }
                      }
-                  }
-            // final AID    enteringAgentId;
-               final String enteringMeetingRoomName = meetingRoomAgentName[simulatedDateTime.getHours()];
-            // final AID    leavingAgentId;
-               final String leavingMeetingRoomName  = meetingRoomAgentName[(simulatedDateTime.getHours() + meetingRoomAgentName.length - 1) % meetingRoomAgentName.length];
+                  final int    previousHour            = (hour + meetingRoomAgentName.length - 1) % meetingRoomAgentName.length;
+                  final String enteringMeetingRoomName = meetingRoomAgentName[hour];
+                  final String leavingMeetingRoomName  = meetingRoomAgentName[previousHour];
 
-               if (leavingMeetingRoomName != null && !leavingMeetingRoomName.equals(enteringMeetingRoomName))
-                  {
-                  final AID        agentId         = new AID();
-                  final ACLMessage outboundMessage = new ACLMessage(ACLMessage.INFORM);
+                  logger.debug("Previous (" + previousHour + "):  " + meetingRoomAgentName[previousHour]);
+                  logger.debug("Current  (" + hour         + "):  " + meetingRoomAgentName[hour]);
+                  if (leavingMeetingRoomName != null /* && !leavingMeetingRoomName.equals(enteringMeetingRoomName) */)
+                     {
+                     final ACLMessage outboundMessage = new ACLMessage(ACLMessage.INFORM);
 
-                  agentId.setLocalName(leavingMeetingRoomName);
-                  outboundMessage.addReceiver(agentId);
-                  outboundMessage.setContent(leaving);
-                  outboundMessage.setOntology(physicalLocationOntology);
-                  send(outboundMessage);
-                  }
-               if (enteringMeetingRoomName != null && !enteringMeetingRoomName.equals(leavingMeetingRoomName))
-                  {
-                  final AID        agentId         = new AID();
-                  final ACLMessage outboundMessage = new ACLMessage(ACLMessage.INFORM);
+                     outboundMessage.addReceiver(new AID(leavingMeetingRoomName, AID.ISLOCALNAME));
+                     outboundMessage.setContentObject(simulatedDateTime);
+                     outboundMessage.setOntology(WorkSpaceAgent.leavingOntology);
+                     send(outboundMessage);
+                     logger.debug("Sending leaving message");
+                     }
+                  if (enteringMeetingRoomName != null /* && !enteringMeetingRoomName.equals(leavingMeetingRoomName) */)
+                     {
+                     final ACLMessage outboundMessage = new ACLMessage(ACLMessage.INFORM);
 
-                  agentId.setLocalName(enteringMeetingRoomName);
-                  outboundMessage.addReceiver(agentId);
-                  outboundMessage.setContent(entering);
-                  outboundMessage.setOntology(physicalLocationOntology);
-                  send(outboundMessage);
+                     outboundMessage.addReceiver(new AID(enteringMeetingRoomName, AID.ISLOCALNAME));
+                     outboundMessage.setContentObject(simulatedDateTime);
+                     outboundMessage.setOntology(WorkSpaceAgent.enteringOntology);
+                     send(outboundMessage);
+                     logger.debug("Sending entering message");
+                     }
                   }
                /*
                if (this.simulatedDateTime.before(workStartDateTime) && !simulatedDateTime.before(workStartDateTime))
@@ -358,8 +377,18 @@ public class PersonAgent
                   }
                */
                // TODO:  lunch
+               this.simulatedDateTime = simulatedDateTime;
                }
-            this.simulatedDateTime = simulatedDateTime;
+            catch (final IOException ioException)
+               {
+               logger.error("Unable to set simulated time content:  " + ioException.getMessage(),
+                            ioException);
+               }
+            catch (final UnreadableException unreadableException)
+               {
+               logger.error("Unable to get simulated time content:  " + unreadableException.getMessage(),
+                            unreadableException);
+               }
             }
          logger.trace("End   WorkBehaviour.action");
          }
