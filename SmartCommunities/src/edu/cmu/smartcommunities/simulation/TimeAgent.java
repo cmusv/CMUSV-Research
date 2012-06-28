@@ -27,21 +27,21 @@ public class TimeAgent
    @Override
    protected void setup()
       {
-      String startTimeString = "2012-01-01 00:00:00";
+      String startDateTimeString = "2012-01-03 00:00:00";
 
       super.setup();
       try
          {
          clockTickInterval = extendedProperties.getIntProperty("ClockTickInterval", 1000);
          millisecondsPerClockTick = extendedProperties.getIntProperty("MillisecondsPerClockTick", 1000);
-         startTimeString = extendedProperties.getProperty("StartTime", startTimeString);
-         simulatedTime = new SimpleDateFormat(iso8601DateTimeFormat).parse(startTimeString).getTime();
+         startDateTimeString = extendedProperties.getProperty("StartDateTime", startDateTimeString);
+         simulatedTime = new SimpleDateFormat(iso8601DateTimeFormat).parse(startDateTimeString).getTime();
          timeSimulationTopic = ((TopicManagementHelper) getHelper(TopicManagementHelper.SERVICE_NAME)).createTopic(serviceType);
          addBehaviour(new SimulateTimePassageBehaviour(this, clockTickInterval));
          }
       catch (final ParseException parseException)
          {
-         logger.error("Unable to parse start time of '" + startTimeString + "'.",
+         logger.error("Unable to parse start time of '" + startDateTimeString + "'.",
                       parseException);
          }
       catch (final ServiceException serviceException)
@@ -54,6 +54,7 @@ public class TimeAgent
    private class SimulateTimePassageBehaviour
       extends TickerBehaviour
       {
+      private              int  debugMessagesSent = 0;
       private              int  messagesSent     = 0;
       private static final long serialVersionUID = 175622771312000339L;
 
@@ -69,15 +70,15 @@ public class TimeAgent
          {
          try
             {
-            if (++messagesSent < 24)
+            if (messagesSent++ < 1 * 24 * 60)
                {
             final ACLMessage outboundMessage   = new ACLMessage(ACLMessage.INFORM);
             final Date       simulatedDateTime = new Date();
 
             simulatedDateTime.setTime(simulatedTime);
+            logger.debug("Sending message " + debugMessagesSent++ + " representing " + new SimpleDateFormat(iso8601DateTimeFormat).format(simulatedTime));
             simulatedTime += millisecondsPerClockTick;
             outboundMessage.addReceiver(timeSimulationTopic);
-         // outboundMessage.setContent("(time " + simulatedTime + ")");
             outboundMessage.setContentObject(simulatedDateTime);
             outboundMessage.setOntology(timeSimulationOntology);
             send(outboundMessage);

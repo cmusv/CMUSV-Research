@@ -1,6 +1,8 @@
 package edu.cmu.smartcommunities.jade.core;
 
 import jade.util.ExtendedProperties;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +15,27 @@ public class Agent
    protected Agent()
       {
       logger.trace("Begin <init>");
+/*
+      final ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+      
+      if (threadMXBean.isThreadCpuTimeSupported())
+         {
+         if (!threadMXBean.isThreadCpuTimeEnabled())
+            {
+            logger.warn("Thread CPU time is not enabled.");
+            }
+         }
+      else
+         {
+         logger.warn("Thread CPU time is not supported.");
+         }
+*/
       logger.trace("End   <init>");
+      }
+
+   private void logCpuTime(final boolean startOfTransaction)
+      {
+      logger.debug((startOfTransaction ? "Start:  " : "End:  ") + ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime());
       }
 
    public void setExtendedProperties(final String[] arguments)

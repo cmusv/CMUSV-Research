@@ -29,7 +29,7 @@ public class SenderAgent
       private        final long[]       preSendDelayTime;
       private static final String       propertyNamePreamble  = "SendMessageBehaviour.Message.";
       private        final int          repeatCount;
-      private static final String       receiverLocalName     = "ReceiverAgent";
+      private static final String       receiverLocalName     = "mcsmith-mcsmith-ReceiverAgent";
       private static final long         serialVersionUID      = -7942170919509482095L;
 
       public SendMessageBehaviour(final Agent agent)
@@ -101,6 +101,7 @@ public class SenderAgent
                for (int j = 0; j < messageCount; j++)
                   {
                   Thread.sleep(preSendDelayTime[j]);
+                  outboundMessage[j].setContent(content);
                   send(outboundMessage[j]);
                   }
                }

@@ -42,7 +42,7 @@ public class ReceiverAgent
             }
          else
             {
-            logger.info(inboundMessage.getContent());
+            logger.debug(inboundMessage.getContent());
             }
          logger.trace("End   action");
          }

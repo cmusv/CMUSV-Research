@@ -2,19 +2,29 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
-	<classpathentry kind="lib" path="external/slf4j-1.6.4/slf4j-api-1.6.4.jar"/>
-	<classpathentry kind="lib" path="external/slf4j-1.6.4/slf4j-log4j12-1.6.4.jar"/>
-	<classpathentry kind="lib" path="external/apache-log4j-1.2.16/log4j-1.2.16.jar"/>
-	<classpathentry kind="lib" path="external/jade-4.1.1/add-ons/security/lib/jadeSecurity.jar" sourcepath="external/jade-4.1.1/add-ons/security/src">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/home/mcsmith/git/CMUSV-Research/SmartCommunities/external/jade-4.1.1/add-ons/security/doc/api/"/>
-		</attributes>
-	</classpathentry>
 	<classpathentry kind="lib" path="external/jade-4.1.1/lib/commons-codec/commons-codec-1.3.jar"/>
 	<classpathentry kind="lib" path="external/jade-4.1.1/lib/jade.jar" sourcepath="external/jade-4.1.1/src">
 		<attributes>
 			<attribute name="javadoc_location" value="file:/home/mcsmith/git/CMUSV-Research/SmartCommunities/external/jade-4.1.1/doc/api/"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="external/jade-4.1.1/add-ons/security/lib/jadeSecurity.jar" sourcepath="external/jade-4.1.1/add-ons/security/src">
+		<attributes>
+			<attribute name="javadoc_location" value="file:/home/mcsmith/git/CMUSV-Research/SmartCommunities/external/jade-4.1.1/add-ons/security/doc/api/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="external/mongo-2.7.2/mongo-2.7.2.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/SmartCommunitiesDatabase"/>
+	<classpathentry kind="lib" path="/SmartCommunitiesDatabase/external/hibernate-distribution-3.6.0.Final/lib/required/antlr-2.7.6.jar"/>
+	<classpathentry kind="lib" path="/SmartCommunitiesDatabase/external/hibernate-distribution-3.6.0.Final/lib/required/commons-collections-3.1.jar"/>
+	<classpathentry kind="lib" path="/SmartCommunitiesDatabase/external/hibernate-distribution-3.6.0.Final/lib/required/dom4j-1.6.1.jar"/>
+	<classpathentry kind="lib" path="/SmartCommunitiesDatabase/external/hibernate-distribution-3.6.0.Final/lib/required/javassist-3.12.0.GA.jar"/>
+	<classpathentry kind="lib" path="/SmartCommunitiesDatabase/external/hibernate-distribution-3.6.0.Final/lib/required/jta-1.1.jar"/>
+	<classpathentry kind="lib" path="/SmartCommunitiesDatabase/external/hibernate-distribution-3.6.0.Final/lib/jpa/hibernate-jpa-2.0-api-1.0.0.Final.jar"/>
+	<classpathentry kind="lib" path="/SmartCommunitiesDatabase/external/hibernate-distribution-3.6.0.Final/hibernate3.jar"/>
+	<classpathentry kind="lib" path="/SmartCommunitiesDatabase/external/apache-log4j-1.2.16/log4j-1.2.16.jar"/>
+	<classpathentry kind="lib" path="/SmartCommunitiesDatabase/external/mysql-connector-java-5.0.8/mysql-connector-java-5.0.8-bin.jar"/>
+	<classpathentry kind="lib" path="/SmartCommunitiesDatabase/external/slf4j-1.6.4/slf4j-api-1.6.4.jar"/>
+	<classpathentry kind="lib" path="/SmartCommunitiesDatabase/external/slf4j-1.6.4/slf4j-log4j12-1.6.4.jar"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>

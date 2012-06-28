@@ -1,6 +1,10 @@
 package edu.cmu.smartcommunities.simulation;
 
 import edu.cmu.smartcommunities.jade.core.Agent;
+import edu.cmu.smartcommunities.simulation.model.ElectricityConsumer;
+import edu.cmu.smartcommunities.simulation.model.ElectricityConsumerInterface;
+import edu.cmu.smartcommunities.simulation.model.SimulationModel;
+import jade.core.AID;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -8,8 +12,6 @@ import jade.lang.acl.UnreadableException;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Set;
-import java.util.TreeSet;
 
 public class ElectricityMeterAgent
    extends Agent
@@ -18,26 +20,18 @@ public class ElectricityMeterAgent
    public  static final String          electricalConsumptionOntology = className + ":ElectricalConsumption";
    private static final MessageTemplate messageTemplate               = MessageTemplate.MatchOntology(electricalConsumptionOntology);
    private static final long            serialVersionUID              = 6894816029239182806L;
-/*
-   private        final Consumer        sustainabilityBase            = new Consumer(null, null, "Sustainability Base");
 
-   public ElectricityMeterAgent()
-      {
-      final Consumer northBuilding = new Consumer(null, sustainabilityBase, "North Building");
-      sustainabilityBase.childConsumerSet.add(northBuilding);
-      final Consumer southBuilding = new Consumer(null, sustainabilityBase, "South Building");
-      sustainabilityBase.childConsumerSet.add(southBuilding);
-      }
-*/
    protected void setup()
       {
       super.setup();
       addBehaviour(new MonitorElectricityUsageBehaviour(this));
+      addBehaviour(new ProcessExternalRequestsBehaviour(this));
       }
 
    private class MonitorElectricityUsageBehaviour
       extends CyclicBehaviour
       {
+      private              int  messagesReceived = 0;
       private static final long serialVersionUID = 8209584853702801273L;
 
       public MonitorElectricityUsageBehaviour(final Agent agent)
@@ -56,6 +50,7 @@ public class ElectricityMeterAgent
             }
          else
             {
+            logger.debug("Messages received:  " + ++messagesReceived);
             try
                {
                final String user  = inboundMessage.getSender().getLocalName();
@@ -74,6 +69,92 @@ public class ElectricityMeterAgent
          }
       }
 
+   private class ProcessExternalRequestsBehaviour
+      extends CyclicBehaviour
+      {
+      private        final MessageTemplate messageTemplate = MessageTemplate.MatchSender(new AID("mcsmith-mcsmith-SocketProxyAgent", AID.ISLOCALNAME));
+      private        final SimulationModel simulationModel;
+
+      public ProcessExternalRequestsBehaviour(final Agent agent)
+         {
+         super(agent);
+         simulationModel = SimulationModel.getInstance();
+         }
+
+      @Override
+      public void action()
+         {
+         final ACLMessage inboundMessage = receive(messageTemplate);
+
+         if (inboundMessage == null)
+            {
+            block();
+            }
+         else
+            {
+            final String content = inboundMessage.getContent();
+            final int    i       = content.lastIndexOf(" ");
+            final String locality = content.substring(0, i);
+            final int    measurements = Integer.parseInt(content.substring(i + 1));
+
+            logger.debug("External request received:  " + content);
+            logger.debug("Locality:  " + locality);
+            logger.debug("Measurements:  " + measurements);
+
+            final StringBuffer stringBuffer = new StringBuffer();
+
+            for (int hour = 0; hour < measurements / 60; hour++)
+               {
+               for (int minute = 0; minute < 30; minute++)
+                  {
+                  stringBuffer.append("" + minute + " " + minute * 40 + "\n");
+                  }
+               for (int minute = 30; minute < 60; minute++)
+                  {
+                  stringBuffer.append("" + (60 - minute) + " " + (60 - minute) * 40 + "\n");
+                  }
+               }
+
+         // final ElectricityConsumerInterface electricityConsumer = ElectricityConsumer.getElectricityConsumer(locality);
+            // get last time in model
+            // for each hour
+            //    getTotalWattsConsumed for the hour
+            //    getTotalOccupancy for the hour
+            //    for 1..60
+            //       construct reply part
+            //    next
+            // next
+            // reply
+
+            final ACLMessage outboundMessage    = inboundMessage.createReply();
+            final String     outboundContent    = stringBuffer.toString();
+            final int        outboundContentEnd = outboundContent.length() - 1;
+            final int        safeBufferSize     = 5000;
+
+            for (int begin = 0; begin < outboundContent.length(); begin += safeBufferSize)
+               {
+               final String beginToken = begin == 0 ? "$" : "";
+               final int    end        = Math.min(begin + safeBufferSize, outboundContentEnd);
+               final String endToken   = end == outboundContentEnd ? "$" : ""; 
+               final String outboundContentSubstring = beginToken + outboundContent.substring(begin, end) + endToken;
+
+               System.out.println("outboundContentSubstring:  >" + outboundContentSubstring + "<");
+               outboundMessage.setContent(outboundContentSubstring);
+               final String dummy = outboundMessage.toString();
+               System.out.println("ACL message representation is " + dummy.length() + " bytes");
+               send(outboundMessage);
+               }
+            /*
+            System.out.println("outboundContent:  >" + outboundContent + "<");
+            outboundMessage.setContent(outboundContent);
+            final String dummy = outboundMessage.toString();
+            System.out.println("ACL message representation is " + dummy.length() + " bytes");
+            send(outboundMessage);
+            */
+            }
+         }
+      }
+
    public static class Usage
       implements Serializable
       {
@@ -88,41 +169,4 @@ public class ElectricityMeterAgent
          this.usageDateTime = usageDateTime;
          }
       }
-/*
-   public class Consumer
-      {
-      public final Set<Consumer> childConsumerSet   = new TreeSet<Consumer>();
-      public final String        fullyQualifiedName;
-      public final Consumer      parent;
-      public final String        shortName;
-
-      public Consumer(final String   fullyQualifiedName,
-                      final Consumer parent,
-                      final String   shortName)
-         {
-         this.fullyQualifiedName = fullyQualifiedName;
-         this.parent = parent;
-         this.shortName = shortName;
-         }
-
-      public Consumer findConsumerByName(final String name)
-         {
-         Consumer theConsumer = null;
-
-         for (Consumer consumer:  childConsumerSet)
-            {
-            if (consumer.shortName.equals(name))
-               {
-               theConsumer = consumer;
-               break;
-               }
-            else
-               {
-               consumer.findConsumerByName(name);
-               }
-            }
-         return theConsumer;
-         }
-      }
-*/
    }

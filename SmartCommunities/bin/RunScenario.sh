@@ -39,8 +39,8 @@ then
          #
          #   Start the sniffer, if necessary.
          #
-         bin/StartSnifferContainer.sh scenarios/"${scenario}"/SnifferContainer.properties &
-         sleep 2
+         #bin/StartSnifferContainer.sh scenarios/"${scenario}"/SnifferContainer.properties &
+         #sleep 2
          #
          #   Start the peripheral container.
          #

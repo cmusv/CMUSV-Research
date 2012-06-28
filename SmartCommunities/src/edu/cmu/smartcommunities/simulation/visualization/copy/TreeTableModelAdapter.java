@@ -1,4 +1,4 @@
-package edu.cmu.smartcommunities.simulation.visualization;
+package edu.cmu.smartcommunities.simulation.visualization.copy;
 /*
  * %W% %E%
  *
@@ -73,6 +73,7 @@ public class TreeTableModelAdapter extends AbstractTableModel
         this.tree = tree;
         this.treeTableModel = treeTableModel;
 
+// tree.addTreeSelectionListener(new TreeExpansionListener() {
    tree.addTreeExpansionListener(new TreeExpansionListener() {
 	    // Don't use fireTableRowsInserted() here; 
 	    // the selection model would get  updated twice. 
