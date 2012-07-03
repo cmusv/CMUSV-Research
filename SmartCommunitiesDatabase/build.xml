@@ -438,7 +438,7 @@
       </dbunit>
       -->
       <sql classpathref="mysql-connector-java.classpath" driver="${connection.driver_class}" url="${connection.url}" userid="${connection.username}" password="${connection.password}" escapeprocessing="no" src="${domain.source.directory}/SmartCommunities.sql" onerror="continue"/>
-      <sql classpathref="mysql-connector-java.classpath" driver="${connection.driver_class}" url="${connection.url}" userid="${connection.username}" password="${connection.password}" escapeprocessing="no" src="${domain.source.directory}/LoadDatabase.sql">
+      <sql classpathref="mysql-connector-java.classpath" driver="${connection.driver_class}" url="${connection.url}" userid="${connection.username}" password="${connection.password}" escapeprocessing="no" src="${domain.source.directory}/CreateLocalities.sql">
       </sql>
    </target>
 
