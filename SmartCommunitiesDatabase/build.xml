@@ -1,0 +1,445 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="SmartSpaces" basedir="." default="runStandalone">
+
+   <description>
+      This build specification is for the SmartSpaces project.  There are
+      primarily four targets that are interest when invoking this build:
+
+         - rebuildDatabase
+
+           Causes the database to be rebuilt, including reloading the tables
+           with test data
+
+         - runLocalContainer
+
+           Causes a Jade agent to be launched using the LocalContainer.properties
+           file located directory specified in the command-line property named "projectName"
+
+         - runRemoteContainer
+
+           Causes a Jade agent to be launched using the RemoteContainer.properties
+           file located directory specified in the command-line property named "projectName"
+
+         - runStandalone
+
+           Causes a Jade agent to be launched using the Standalone.properties
+           file located directory specified in the command-line property named "projectName"
+   </description>
+
+   <property file="build.properties"/>
+
+   <path id="domain.classpath">
+      <path refid="hibernate.classpath"/>
+      <path refid="mysql-connector-java.classpath"/>
+      <path refid="slf4j.classpath"/>
+      <pathelement location="${domain.classes.directory}"/>
+   </path>
+
+   <path id="hibernate.classpath">
+      <!-- required for database interaction -->
+      <pathelement location="${antlr.jar}"/>
+   	<pathelement location="${c3p0.jar}"/>
+      <pathelement location="${dom4j.jar}"/>
+   	<pathelement location="${hibernate-c3p0.jar}"/>
+   	<pathelement location="${hibernate-commons-annotation.jar}"/>
+   	<pathelement location="${hibernate-core.jar}"/>
+   	<pathelement location="${hibernate-jpa.jar}"/>
+   	<pathelement location="${javassist.jar}"/>
+   	<pathelement location="${jboss-logging.jar}"/>
+   	<pathelement location="${jboss-transaction.jar}"/>
+   </path>
+
+   <path id="hibernate-tools.classpath">
+      <!-- required for database interaction -->
+      <path refid="hibernate.classpath"/>
+      <path refid="mysql-connector-java.classpath"/>
+   	<pathelement location="${commons-logging.jar}"/>
+      <pathelement location="${freemarker.jar}"/>
+   	<pathelement location="${hibernate.jar}"/>
+      <pathelement location="${hibernate-tools.jar}"/>
+   	<pathelement location="${jtidy.jar}"/>
+      <pathelement location="${log4j.jar}"/>
+   </path>
+
+   <path id="mysql-connector-java.classpath">
+      <!-- required for database interaction -->
+      <pathelement location="${mysql-connector-java.jar}"/>
+   </path>
+
+   <path id="slf4j.classpath">
+      <!-- required for logging facade -->
+      <pathelement location="${slf4j.jar}"/>
+      <pathelement location="${slf4j-log4j.jar}"/>
+      <pathelement location="${log4j.jar}"/>
+   </path>
+
+   <target name="cleanBuildDirectory">
+      <delete dir="${domain.build.directory}"/>
+      <!--
+      <delete>
+         <fileset dir="${domain.source.directory}">
+            <include name="smartspaces/database/model/*.java"/>
+            <exclude name="smartspaces/database/model/*Comparator.java"/>
+         </fileset>
+      </delete>
+      <ant copy newer filesdelete dir="${test.build.directory}"/>
+      <delete dir="${test.results.directory}"/>
+      -->
+      <delete file="${domain.source.directory}/hibernate.cfg.xml"/>
+   </target>
+
+   <target name="compileDomainSourceFiles" depends="compileHibernateMappingFiles">
+      <javac source="7" srcdir="${domain.source.directory}" destdir="${domain.classes.directory}" classpathref="domain.classpath" debug="on">
+         <!--compilerarg value="-Xlint:unchecked"/-->
+         <!-- Used to uncover the 1.4 source compatability issue -->
+      </javac>
+   </target>
+
+   <target name="compileHibernateMappingFiles" depends="copyHibernateMappingFiles, copyPropertiesFiles">
+      <taskdef name="hibernatetool" classname="org.hibernate.tool.ant.HibernateToolTask" classpathref="hibernate-tools.classpath"/>
+      <!--
+         Ideally, the Hibernate Tools would produce granular results based on
+         which mapping files have been updated and:
+
+            - indicate when the structure of the database is detected so that
+              the database can be rebuilt and reloaded only as needed, and
+            - regenerate only those POJO source files that are affected.
+
+         Unfortunately, that's not the default behaviour.
+
+         In order to arrive at the first desired behaviour, the following
+         workaround is used:
+
+            - have hbm2ddl withold exporting changes directly to the database,
+              but write the DDL statements to a file
+            - write a copy of the newly generated DDL statements to a second
+              temporary directory, but only if it differs from the previous
+              generation's copy (in the source directory)
+            - set a property if the second temporary copy was made
+            - execute the seedDatabaseWithTestData only if the property is set
+
+         In order to arrive at the second desired behaviour, the following
+         workaround is used:
+
+            - have hbm2java write the POJO source files to a temporary directory
+            - copy the generated source files to a second temporary directory,
+              removing an embedded timestamp comment from each file
+            - copy only the revised source files to the source directory
+      -->
+      <delete dir="${temporary.directory}"/>
+      <mkdir dir="${temporary.directory}"/>
+      <hibernatetool destdir="${temporary.directory}">
+         <classpath>
+            <path refid="domain.classpath"/>
+         </classpath>
+         <configuration configurationfile="${domain.classes.directory}/hibernate.cfg.xml"/>
+         <hbm2ddl console="false" drop="true" export="false" format="true" outputfilename="SmartCommunities.sql"/>
+         <hbm2java jdk5="true"/>
+      </hibernatetool>
+      <copy todir="${temporary.directory}/$_DatabaseRestructure_$">
+         <fileset dir="${temporary.directory}">
+            <include name="SmartCommunities.sql"/>
+            <different targetdir="${domain.source.directory}"/>
+         </fileset>
+      </copy>
+      <available file="${temporary.directory}/$_DatabaseRestructure_$/SmartCommunities.sql" property="databaseNeedsRebuilding"/>
+      <delete dir="${temporary.directory}/$_DatabaseRestructure_$"/>
+      <copy todir="${temporary.directory}/$_TimeStampStripped_$">
+         <fileset dir="${temporary.directory}"/>
+         <filterchain>
+            <linecontainsregexp negate="true">
+               <regexp pattern="^// Generated"/>
+            </linecontainsregexp>
+         </filterchain>
+      </copy>
+      <copy todir="${domain.source.directory}">
+         <fileset dir="${temporary.directory}/$_TimeStampStripped_$">
+            <different targetdir="${domain.source.directory}"/>
+         </fileset>
+      </copy>
+      <delete dir="${temporary.directory}"/>
+   </target>
+
+   <target name="compileTestSourceFiles" depends="compileDomainSourceFiles">
+   </target>
+
+   <target name="copyCascadingStyleSheet" depends="createBuildDirectory">
+   </target>
+
+   <target name="copyContextDescriptorFile">
+   </target>
+
+   <target name="copyExternalLibraryFiles" depends="createBuildDirectory">
+      <!--
+      <copy todir="${domain.build.directory}/WEB-INF/lib">
+         <fileset dir="${hibernate.home}">
+            <include name="hibernate3.jar"/>
+         </fileset>
+         <fileset dir="${hibernate.home}/lib">
+            <include name="antlr-2.7.6rc1.jar"/>
+            <include name="asm.jar"/>
+            <include name="cglib-2.1.3.jar"/>
+            <include name="commons-collections-2.1.1.jar"/>
+            <include name="commons-logging-1.0.4.jar"/>
+            <include name="dom4j-1.6.1.jar"/>
+            <include name="ehcache-1.1.jar"/>
+            <include name="jta.jar"/>
+            <include name="log4j-1.2.11.jar"/>
+         </fileset>
+         <fileset dir="${mysql-connector-java.home}">
+            <include name="mysql-connector-java-3.1.12-bin.jar"/>
+         </fileset>
+         <fileset dir="${struts.home}/contrib/struts-el/lib">
+            <include name="jstl.jar"/>
+            <include name="standard.jar"/>
+            <include name="struts-el.jar"/>
+         </fileset>
+         <fileset dir="${struts.home}/lib">
+            <include name="commons-beanutils.jar"/>
+            <include name="commons-digester.jar"/>
+            <include name="commons-logging.jar"/>
+            <include name="commons-validator.jar"/>
+            <include name="struts.jar"/>
+            <include name="**/*.tld"/>
+         </fileset>
+         <fileset dir="${domain.web.directory}/lib">
+            <include name="strutstest-2.1.3.jar"/>
+            <include name="httpunit.jar"/>
+            <include name="js.jar"/>
+         </fileset>
+         <fileset dir="${tomcat.home}/server/lib">
+            <include name="catalina.jar"/>
+            <include name="catalina-optional.jar"/>
+         </fileset>
+      </copy>
+      -->
+   </target>
+
+   <target name="copyHibernateMappingFiles" depends="createBuildDirectory, personalizeHibernateConfigurationFile">
+      <copy todir="${domain.classes.directory}">
+         <fileset dir="${domain.source.directory}">
+            <include name="**/*.cfg.xml"/>
+            <include name="**/*.hbm.xml"/>
+            <exclude name="**/hibernate-template.cfg.xml"/>
+         </fileset>
+      </copy>
+   </target>
+
+   <target name="copyJavaServerPages" depends="createBuildDirectory">
+      <!--
+      <copy todir="${domain.build.directory}">
+         <fileset dir="${domain.web.directory}/..">
+            <include name="**/*.gif"/>
+            <include name="**/*.jpg"/>
+            <include name="**/*.jsp"/>
+            <include name="**/*.jspx"/>
+         </fileset>
+      </copy>
+      -->
+   </target>
+
+   <target name="copyPropertiesFiles" depends="createBuildDirectory">
+      <copy todir="${domain.classes.directory}">
+         <fileset dir="${domain.source.directory}">
+            <include name="**/*.properties"/>
+         </fileset>
+      </copy>
+   </target>
+
+   <target name="copyStrutsConfigurationFile" depends="createBuildDirectory">
+      <!--
+      <copy todir="${domain.classes.directory}/..">
+         <fileset dir="${domain.web.directory}">
+            <include name="**/struts*.*"/>
+            <include name="**/tiles-defs.xml"/>
+            <include name="**/validator-rules.xml"/>
+            <include name="**/validation.xml"/>
+         </fileset>
+      </copy>
+      -->
+   </target>
+
+   <target name="createApiDocumentation" depends="compileDomainSourceFiles">
+      <javadoc classpathref="domain.classpath" packagenames="edu.cmu.smartcommunities.*" sourcepath="${domain.source.directory}" destdir="${domain.documentation.directory}"/>
+   </target>
+
+   <target name="createBuildDirectory"> <!-- depends="cleanBuildDirectory"> -->
+      <mkdir dir="${domain.build.directory}"/>
+      <!--
+      <mkdir dir="${test.build.directory}"/>
+      <mkdir dir="${test.results.directory}"/>
+      -->
+   </target>
+
+   <target name="createCodeCoverageReport" depends="initializeCodeCoverage, runUnitTests" if="measuringCodeCoverage">
+      <!--
+      <clover-report>
+         <current outfile="${test.results.directory}/CodeCoverage" title="PET Test Cases Code Coverage">
+            <format type="html"/>
+         </current>
+      </clover-report>
+      <clover-check target="80%" haltOnFailure="true">
+         <package name="com.ndsystems.pet" target="100%"/>
+         <package name="com.ndsystems.pet.controller" target="80%"/>
+         <package name="com.ndsystems.pet.model" target="85%"/>
+      </clover-check>
+      -->
+   </target>
+
+   <target name="createJarFile" depends="compileDomainSourceFiles, copyPropertiesFiles">
+      <!--
+      <copy file="${domain.source.directory}/com/ndsystems/pet/security/mbeans-descriptors.xml" todir="${domain.build.directory}/WEB-INF/classes/com/ndsystems/pet/security"/>
+      <jar destfile="${domain.build.directory}/pet.jar" basedir="${domain.build.directory}/WEB-INF/classes"/>
+      -->
+      <jar destfile="lib/SmartCommunitiesDatabase.jar" basedir="${domain.classes.directory}"/>
+   </target>
+
+   <target name="createWarFile" depends="compileDomainSourceFiles, copyCascadingStyleSheet, copyExternalLibraryFiles, copyJavaServerPages, copyStrutsConfigurationFile"> <!-- createApiDocumentation -->
+      <!--
+      <war destfile="${domain.build.directory}/pet.war" webxml="${domain.web.directory}/web.xml">
+         <fileset dir="${domain.build.directory}">
+            <exclude name="pet.jar"/>
+            <include name="**/*.class"/>
+            <include name="**/*.css"/>
+            <include name="**/*.gif"/>
+            <include name="**/*.jar"/>
+            <include name="**/*.jpg"/>
+            <include name="**/*.jsp"/>
+            <include name="**/*.jspx"/>
+            <include name="**/*.properties"/>
+            <include name="**/*.tld"/>
+            <include name="**/*.xml"/>
+            <include name="**/docs/**"/>
+         </fileset>
+      </war>
+      -->
+   </target>
+
+   <target name="deployJarFile" depends="createJarFile">
+      <!--
+      <copy todir="${tomcat.home}/server/lib">
+         <fileset dir="${domain.build.directory}">
+            <include name="**/pet.jar"/>
+         </fileset>
+      </copy>
+      -->
+   </target>
+
+   <target name="deployWarFile" depends="createWarFile">
+      <!--
+      <copy file="${domain.build.directory}/pet.war" todir="${tomcat.home}/webapps"/>
+      -->
+   </target>
+
+   <target name="initializeCodeCoverage" if="measuringCodeCoverage">
+      <!--
+      <clover-setup initString="${test.results.directory}/CodeCoverage.db"/>
+      -->
+   </target>
+
+   <target name="personalizeHibernateConfigurationFile" depends="copyExternalLibraryFiles">
+      <copy file="${domain.source.directory}/hibernate-template.cfg.xml" tofile="${domain.source.directory}/hibernate.cfg.xml">
+         <filterchain>
+            <replacetokens>
+               <token key="connection.driver_class" value="${connection.driver_class}"/>
+               <token key="connection.password" value="${connection.password}"/>
+               <token key="connection.url" value="${connection.url}"/>
+               <token key="connection.username" value="${connection.username}"/>
+            </replacetokens>
+         </filterchain>
+      </copy>
+   </target>
+
+   <target name="rebuildDatabase">
+      <antcall target="seedDatabaseWithTestData">
+         <param name="databaseNeedsRebuilding" value="true"/>
+      </antcall>
+   </target>
+
+   <target name="run" depends="createCodeCoverageReport, seedDatabaseWithProductionData">
+      <java classname="jade.Boot" fork="true">
+         <!-- format for JADE agents
+         <arg value="import:${propertyFile}"/>
+         -->
+         <!-- format for JADE/LEAP agents -->
+         <arg value="${propertyFile}"/>
+         <classpath refid="domain.classpath"/>
+         <jvmarg value="-Djava.library.path=lib"/>
+         <jvmarg value="-mx312m"/>
+      </java>
+   </target>
+
+   <target name="runLocalContainer">
+      <antcall target="run">
+         <param name="propertyFile" value="resources/${projectName}/LocalContainer.properties"/>
+      </antcall>
+   </target>
+
+   <target name="runRemoteContainer">
+      <antcall target="run">
+         <param name="propertyFile" value="resources/${projectName}/RemoteContainer.properties"/>
+      </antcall>
+   </target>
+
+   <target name="runStandalone">
+      <antcall target="run">
+         <param name="propertyFile" value="resources/${projectName}/Standalone.properties"/>
+      </antcall>
+   </target>
+
+   <target name="runUnitTests" depends="compileTestSourceFiles, copyContextDescriptorFile, deployJarFile, deployWarFile, seedDatabaseWithTestData">
+      <!--
+      <junit failureproperty="failureDetected" fork="yes" printsummary="yes" showoutput="yes">
+         <classpath refid="test-pet.classpath"/>
+         <formatter type="brief" usefile="false"/>
+         <formatter type="plain" usefile="true"/>
+         <formatter type="xml"/>
+         <sysproperty key="connection.driver_class" value="${connection.driver_class}"/>
+         <sysproperty key="connection.password" value="${connection.password}"/>
+         <sysproperty key="connection.url" value="${connection.url}"/>
+         <sysproperty key="connection.username" value="${connection.username}"/>
+         <sysproperty key="hibernate.cglib.use_reflection_optimizer" value="false"/>
+         <sysproperty key="test.data.directory" value="${test.data.directory}"/>
+         <test name="com.ndsystems.pet.TestAll" todir="${test.results.directory}"/>
+      </junit>
+      <fail if="failureDetected"/>
+      -->
+   </target>
+
+   <target name="seedDatabaseWithProductionData" depends="compileHibernateMappingFiles">
+      <sql classpathref="mysql-connector-java.classpath" driver="${connection.driver_class}" url="${connection.url}" userid="${connection.username}" password="${connection.password}">
+         <!-- Delete unwanted test data. -->
+         <!-- Populate the production data table -->
+         select count(*) from Category;
+      </sql>
+      <!--
+      <taskdef name="dbunit" classname="org.dbunit.ant.DbUnitTask" classpathref="dbunit.classpath"/>
+      -->
+      <!--
+      <dbunit driver="${connection.driver_class}" password="${connection.password}" url="${connection.url}" userid="${connection.username}">
+         <classpath>
+            <path refid="mysql-connector-java.classpath"/>
+         </classpath>
+         <operation src="${test.data.directory}/TestSystem.xml" type="CLEAN_INSERT"/>
+      </dbunit>
+      -->
+   </target>
+
+   <target name="seedDatabaseWithTestData" depends="compileHibernateMappingFiles" if="databaseNeedsRebuilding">
+      <!--
+      <taskdef name="dbunit" classname="org.dbunit.ant.DbUnitTask" classpathref="dbunit.classpath"/>
+      -->
+      <!--
+      <dbunit driver="${connection.driver_class}" password="${connection.password}" url="${connection.url}" userid="${connection.username}">
+         <classpath>
+            <path refid="mysql-connector-java.classpath"/>
+         </classpath>
+         <operation src="LifecycleManagement.xml" type="INSERT"/>
+      </dbunit>
+      -->
+      <sql classpathref="mysql-connector-java.classpath" driver="${connection.driver_class}" url="${connection.url}" userid="${connection.username}" password="${connection.password}" escapeprocessing="no" src="${domain.source.directory}/SmartCommunities.sql" onerror="continue"/>
+      <sql classpathref="mysql-connector-java.classpath" driver="${connection.driver_class}" url="${connection.url}" userid="${connection.username}" password="${connection.password}" escapeprocessing="no" src="${domain.source.directory}/LoadDatabase.sql">
+      </sql>
+   </target>
+
+</project>
