@@ -2,18 +2,23 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
-	<classpathentry kind="lib" path="external/hibernate-release-4.1.4.Final/lib/required/antlr-2.7.7.jar"/>
+	<classpathentry kind="lib" path="external/apache-log4j-1.2.16/log4j-1.2.16.jar"/>
 	<classpathentry kind="lib" path="external/hibernate-release-4.1.4.Final/lib/optional/c3p0/c3p0-0.9.1.jar"/>
-	<classpathentry kind="lib" path="external/hibernate-release-4.1.4.Final/lib/required/dom4j-1.6.1.jar"/>
 	<classpathentry kind="lib" path="external/hibernate-release-4.1.4.Final/lib/optional/c3p0/hibernate-c3p0-4.1.4.Final.jar"/>
+	<classpathentry kind="lib" path="external/hibernate-release-4.1.4.Final/lib/required/antlr-2.7.7.jar"/>
+	<classpathentry kind="lib" path="external/hibernate-release-4.1.4.Final/lib/required/dom4j-1.6.1.jar"/>
 	<classpathentry kind="lib" path="external/hibernate-release-4.1.4.Final/lib/required/hibernate-commons-annotations-4.0.1.Final.jar"/>
-	<classpathentry kind="lib" path="external/hibernate-release-4.1.4.Final/lib/required/hibernate-core-4.1.4.Final.jar"/>
+	<classpathentry kind="lib" path="external/hibernate-release-4.1.4.Final/lib/required/hibernate-core-4.1.4.Final.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="file:/home/mcsmith/git/CMUSV-Research/SmartCommunitiesDatabase/external/hibernate-release-4.1.4.Final/documentation/javadocs/"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="lib" path="external/hibernate-release-4.1.4.Final/lib/required/hibernate-jpa-2.0-api-1.0.1.Final.jar"/>
 	<classpathentry kind="lib" path="external/hibernate-release-4.1.4.Final/lib/required/javassist-3.15.0-GA.jar"/>
 	<classpathentry kind="lib" path="external/hibernate-release-4.1.4.Final/lib/required/jboss-logging-3.1.0.GA.jar"/>
 	<classpathentry kind="lib" path="external/hibernate-release-4.1.4.Final/lib/required/jboss-transaction-api_1.1_spec-1.0.0.Final.jar"/>
-	<classpathentry kind="lib" path="external/apache-log4j-1.2.16/log4j-1.2.16.jar"/>
-	<classpathentry kind="lib" path="external/slf4j-1.6.4/slf4j-api-1.6.4.jar"/>
+	<classpathentry kind="lib" path="external/mysql-connector-java-5.1.20/mysql-connector-java-5.1.20-bin.jar"/>
+	<classpathentry kind="lib" path="external/slf4j-1.6.4/slf4j-api-1.6.4.jar" sourcepath="external/slf4j-1.6.4/slf4j-api-1.6.4-sources.jar"/>
 	<classpathentry kind="lib" path="external/slf4j-1.6.4/slf4j-log4j12-1.6.4.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
