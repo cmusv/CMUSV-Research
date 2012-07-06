@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project name="SmartSpaces" basedir="." default="runStandalone">
+<project name="SmartCommunitiesDatabase" basedir="." default="runStandalone">
 
    <description>
       This build specification is for the SmartSpaces project.  There are
@@ -68,13 +68,14 @@
 
    <path id="slf4j.classpath">
       <!-- required for logging facade -->
-      <pathelement location="${slf4j.jar}"/>
+      <pathelement location="${slf4j-api.jar}"/>
       <pathelement location="${slf4j-log4j.jar}"/>
       <pathelement location="${log4j.jar}"/>
    </path>
 
    <target name="cleanBuildDirectory">
-      <delete dir="${domain.build.directory}"/>
+      <delete dir="${domain.classes.directory}"/>
+   	<delete dir="${domain.build.directory}/lib"/>
       <!--
       <delete>
          <fileset dir="${domain.source.directory}">
@@ -89,7 +90,7 @@
    </target>
 
    <target name="compileDomainSourceFiles" depends="compileHibernateMappingFiles">
-      <javac source="7" srcdir="${domain.source.directory}" destdir="${domain.classes.directory}" classpathref="domain.classpath" debug="on">
+      <javac source="7" srcdir="${domain.source.directory}" destdir="${domain.classes.directory}" classpathref="domain.classpath" debug="on" includeantruntime="false">
          <!--compilerarg value="-Xlint:unchecked"/-->
          <!-- Used to uncover the 1.4 source compatability issue -->
       </javac>
@@ -161,58 +162,23 @@
    </target>
 
    <target name="compileTestSourceFiles" depends="compileDomainSourceFiles">
+      <echo message="Does nothing"/>
    </target>
 
    <target name="copyCascadingStyleSheet" depends="createBuildDirectory">
+      <echo message="Does nothing"/>
    </target>
 
    <target name="copyContextDescriptorFile">
+      <echo message="Does nothing"/>
    </target>
 
    <target name="copyExternalLibraryFiles" depends="createBuildDirectory">
-      <!--
-      <copy todir="${domain.build.directory}/WEB-INF/lib">
-         <fileset dir="${hibernate.home}">
-            <include name="hibernate3.jar"/>
-         </fileset>
-         <fileset dir="${hibernate.home}/lib">
-            <include name="antlr-2.7.6rc1.jar"/>
-            <include name="asm.jar"/>
-            <include name="cglib-2.1.3.jar"/>
-            <include name="commons-collections-2.1.1.jar"/>
-            <include name="commons-logging-1.0.4.jar"/>
-            <include name="dom4j-1.6.1.jar"/>
-            <include name="ehcache-1.1.jar"/>
-            <include name="jta.jar"/>
-            <include name="log4j-1.2.11.jar"/>
-         </fileset>
-         <fileset dir="${mysql-connector-java.home}">
-            <include name="mysql-connector-java-3.1.12-bin.jar"/>
-         </fileset>
-         <fileset dir="${struts.home}/contrib/struts-el/lib">
-            <include name="jstl.jar"/>
-            <include name="standard.jar"/>
-            <include name="struts-el.jar"/>
-         </fileset>
-         <fileset dir="${struts.home}/lib">
-            <include name="commons-beanutils.jar"/>
-            <include name="commons-digester.jar"/>
-            <include name="commons-logging.jar"/>
-            <include name="commons-validator.jar"/>
-            <include name="struts.jar"/>
-            <include name="**/*.tld"/>
-         </fileset>
-         <fileset dir="${domain.web.directory}/lib">
-            <include name="strutstest-2.1.3.jar"/>
-            <include name="httpunit.jar"/>
-            <include name="js.jar"/>
-         </fileset>
-         <fileset dir="${tomcat.home}/server/lib">
-            <include name="catalina.jar"/>
-            <include name="catalina-optional.jar"/>
-         </fileset>
+      <copy todir="${domain.build.directory}/lib" flatten="true">
+         <path refid="hibernate.classpath"/>
+         <path refid="mysql-connector-java.classpath"/>
+         <path refid="slf4j.classpath"/>
       </copy>
-      -->
    </target>
 
    <target name="copyHibernateMappingFiles" depends="createBuildDirectory, personalizeHibernateConfigurationFile">
@@ -226,6 +192,7 @@
    </target>
 
    <target name="copyJavaServerPages" depends="createBuildDirectory">
+   	<echo message="Does nothing"/>
       <!--
       <copy todir="${domain.build.directory}">
          <fileset dir="${domain.web.directory}/..">
@@ -247,6 +214,7 @@
    </target>
 
    <target name="copyStrutsConfigurationFile" depends="createBuildDirectory">
+      <echo message="Does nothing"/>
       <!--
       <copy todir="${domain.classes.directory}/..">
          <fileset dir="${domain.web.directory}">
@@ -264,7 +232,8 @@
    </target>
 
    <target name="createBuildDirectory"> <!-- depends="cleanBuildDirectory"> -->
-      <mkdir dir="${domain.build.directory}"/>
+      <mkdir dir="${domain.classes.directory}"/>
+   	<mkdir dir="${domain.build.directory}/lib"/>
       <!--
       <mkdir dir="${test.build.directory}"/>
       <mkdir dir="${test.results.directory}"/>
@@ -272,6 +241,7 @@
    </target>
 
    <target name="createCodeCoverageReport" depends="initializeCodeCoverage, runUnitTests" if="measuringCodeCoverage">
+      <echo message="Does nothing"/>
       <!--
       <clover-report>
          <current outfile="${test.results.directory}/CodeCoverage" title="PET Test Cases Code Coverage">
@@ -291,10 +261,11 @@
       <copy file="${domain.source.directory}/com/ndsystems/pet/security/mbeans-descriptors.xml" todir="${domain.build.directory}/WEB-INF/classes/com/ndsystems/pet/security"/>
       <jar destfile="${domain.build.directory}/pet.jar" basedir="${domain.build.directory}/WEB-INF/classes"/>
       -->
-      <jar destfile="lib/SmartCommunitiesDatabase.jar" basedir="${domain.classes.directory}"/>
+      <jar destfile="lib/${ant.project.name}.jar" basedir="${domain.classes.directory}"/>
    </target>
 
    <target name="createWarFile" depends="compileDomainSourceFiles, copyCascadingStyleSheet, copyExternalLibraryFiles, copyJavaServerPages, copyStrutsConfigurationFile"> <!-- createApiDocumentation -->
+      <echo message="Does nothing"/>
       <!--
       <war destfile="${domain.build.directory}/pet.war" webxml="${domain.web.directory}/web.xml">
          <fileset dir="${domain.build.directory}">
@@ -316,6 +287,7 @@
    </target>
 
    <target name="deployJarFile" depends="createJarFile">
+      <echo message="Does nothing"/>
       <!--
       <copy todir="${tomcat.home}/server/lib">
          <fileset dir="${domain.build.directory}">
@@ -326,12 +298,14 @@
    </target>
 
    <target name="deployWarFile" depends="createWarFile">
+      <echo message="Does nothing"/>
       <!--
       <copy file="${domain.build.directory}/pet.war" todir="${tomcat.home}/webapps"/>
       -->
    </target>
 
    <target name="initializeCodeCoverage" if="measuringCodeCoverage">
+      <echo message="Does nothing"/>
       <!--
       <clover-setup initString="${test.results.directory}/CodeCoverage.db"/>
       -->
@@ -388,6 +362,7 @@
    </target>
 
    <target name="runUnitTests" depends="compileTestSourceFiles, copyContextDescriptorFile, deployJarFile, deployWarFile, seedDatabaseWithTestData">
+      <echo message="Does nothing"/>
       <!--
       <junit failureproperty="failureDetected" fork="yes" printsummary="yes" showoutput="yes">
          <classpath refid="test-pet.classpath"/>
