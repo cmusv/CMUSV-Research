@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE project>
+<project name="SmartCommunitiesServer" basedir="." default="createWarFile">
+
+   <property file="build.properties"/>
+
+   <path id="domain.classpath">
+      <path refid="hibernate.classpath"/>
+      <path refid="javaee.classpath"/>
+      <!--
+      <path refid="mysql-connector-java.classpath"/>
+      -->
+      <path refid="slf4j.classpath"/>
+   	<path refid="SmartCommunitiesDatabase.classpath"/>
+      <pathelement location="${domain.classes.directory}"/>
+   </path>
+
+   <path id="hibernate.classpath">
+      <!-- required for database interaction -->
+      <pathelement location="${antlr.jar}"/>
+      <pathelement location="${c3p0.jar}"/>
+      <pathelement location="${dom4j.jar}"/>
+      <pathelement location="${hibernate-c3p0.jar}"/>
+      <pathelement location="${hibernate-commons-annotation.jar}"/>
+      <pathelement location="${hibernate-core.jar}"/>
+      <pathelement location="${hibernate-jpa.jar}"/>
+      <pathelement location="${javassist.jar}"/>
+      <pathelement location="${jboss-logging.jar}"/>
+      <pathelement location="${jboss-transaction.jar}"/>
+   </path>
+
+	<path id="javaee.classpath">
+	   <!-- required for servlets -->
+		<pathelement location="${javax.servlet-api.jar}"/>
+	</path>
+
+   <path id="mysql-connector-java.classpath">
+      <!-- required for database interaction -->
+      <pathelement location="${mysql-connector-java.jar}"/>
+   </path>
+
+   <path id="slf4j.classpath">
+      <!-- required for logging facade -->
+      <pathelement location="${slf4j-api.jar}"/>
+      <pathelement location="${slf4j-log4j.jar}"/>
+      <pathelement location="${log4j.jar}"/>
+   </path>
+
+	<path id="SmartCommunitiesDatabase.classpath">
+	   <pathelement location="${SmartCommunitiesDatabase.jar}"/>
+	</path>
+
+   <target name="cleanBuildDirectory">
+   	<delete includeEmptyDirs="true">
+   		<!--
+         <fileset dir="${domain.build.directory}" includes="index.*"/>
+         <fileset dir="${domain.build.directory}/lib"/>
+         -->
+         <fileset dir="${domain.build.directory}/WEB-INF/lib"/>
+   		<fileset dir="${domain.classes.directory}"/>
+      </delete>
+      <!--
+      <delete dir="${domain.build.directory}"/>
+      <delete>
+         <fileset dir="${domain.source.directory}">
+            <include name="smartspaces/database/model/*.java"/>
+            <exclude name="smartspaces/database/model/*Comparator.java"/>
+         </fileset>
+      </delete>
+      <ant copy newer filesdelete dir="${test.build.directory}"/>
+      <delete dir="${test.results.directory}"/>
+      <delete file="${domain.source.directory}/hibernate.cfg.xml"/>
+      -->
+   </target>
+
+   <target name="compileDomainSourceFiles" depends="copyExternalLibraryFiles">
+      <javac source="7" srcdir="${domain.source.directory}" destdir="${domain.classes.directory}" classpathref="domain.classpath" debug="on" includeantruntime="false">
+         <!--compilerarg value="-Xlint:unchecked"/-->
+         <!-- Used to uncover the 1.4 source compatability issue -->
+      </javac>
+   </target>
+
+   <target name="compileTestSourceFiles" depends="compileDomainSourceFiles">
+      <echo message="Does nothing"/>
+   </target>
+
+	<!--
+   <target name="copyCascadingStyleSheet" depends="createBuildDirectory">
+      <copy file="${web.source.directory}/index.css" todir="${domain.build.directory}" preservelastmodified="true"/>
+   -->
+   	<!-- OK, let's cheat a little and bundle some additional file types here -->
+	<!--
+      <copy file="${domain.source.directory}/index.html" todir="${domain.build.directory}" preservelastmodified="true"/>
+      <copy file="${domain.source.directory}/index.js" todir="${domain.build.directory}" preservelastmodified="true"/>
+   </target>
+   -->
+
+   <target name="copyContextDescriptorFile">
+      <echo message="Does nothing"/>
+   </target>
+
+   <target name="copyExternalLibraryFiles" depends="createBuildDirectory">
+   	<!--
+   	<copy todir="${domain.build.directory}/lib/RGraph" preservelastmodified="true">
+   	   <fileset dir="${RGraphHome}"/>
+   	</copy>
+   	-->
+   	<copy todir="${domain.build.directory}/WEB-INF/lib" preservelastmodified="true">
+   	   <fileset dir="${SmartCommunitiesDatabase.home}/lib"/>
+   	</copy>
+   </target>
+
+   <target name="copyJavaServerPages" depends="createBuildDirectory">
+      <echo message="Does nothing"/>
+   	<!--
+      <copy todir="${domain.build.directory}">
+         <fileset dir="${domain.web.directory}/..">
+            <include name="**/*.gif"/>
+            <include name="**/*.jpg"/>
+            <include name="**/*.jsp"/>
+            <include name="**/*.jspx"/>
+         </fileset>
+      </copy>
+      -->
+   </target>
+
+   <target name="copyPropertiesFiles" depends="createBuildDirectory">
+      <copy todir="${domain.classes.directory}">
+         <fileset dir="${domain.source.directory}">
+            <include name="**/*.properties"/>
+         </fileset>
+      </copy>
+   </target>
+
+   <target name="copyStrutsConfigurationFile" depends="createBuildDirectory">
+      <echo message="Does nothing"/>
+      <!--
+      <copy todir="${domain.classes.directory}/..">
+         <fileset dir="${domain.web.directory}">
+            <include name="**/struts*.*"/>
+            <include name="**/tiles-defs.xml"/>
+            <include name="**/validator-rules.xml"/>
+            <include name="**/validation.xml"/>
+         </fileset>
+      </copy>
+      -->
+   </target>
+
+	<!--
+   <target name="copyWebSourceFiles" depends="createBuildDirectory">
+      <copy todir="${domain.build.directory}" preservelastmodified="true">
+         <fileset dir="${basedir}/websrc"/>
+      </copy>
+   </target>
+   -->
+
+   <target name="createApiDocumentation" depends="compileDomainSourceFiles">
+      <javadoc classpathref="domain.classpath" packagenames="edu.cmu.smartcommunities.*" sourcepath="${domain.source.directory}" destdir="${domain.documentation.directory}"/>
+   </target>
+
+   <target name="createBuildDirectory"> <!-- depends="cleanBuildDirectory"> -->
+      <!--
+      <mkdir dir="${domain.build.directory}"/>
+      <mkdir dir="${domain.build.directory}/lib"/>
+      -->
+   	<mkdir dir="${domain.build.directory}/WEB-INF/lib"/>
+      <mkdir dir="${domain.classes.directory}"/>
+   	<!--
+      <mkdir dir="${test.build.directory}"/>
+      <mkdir dir="${test.results.directory}"/>
+      -->
+   </target>
+
+   <target name="createCodeCoverageReport" depends="initializeCodeCoverage, runUnitTests" if="measuringCodeCoverage">
+      <echo message="Does nothing"/>
+      <!--
+      <clover-report>
+         <current outfile="${test.results.directory}/CodeCoverage" title="PET Test Cases Code Coverage">
+            <format type="html"/>
+         </current>
+      </clover-report>
+      <clover-check target="80%" haltOnFailure="true">
+         <package name="com.ndsystems.pet" target="100%"/>
+         <package name="com.ndsystems.pet.controller" target="80%"/>
+         <package name="com.ndsystems.pet.model" target="85%"/>
+      </clover-check>
+      -->
+   </target>
+
+   <target name="createJarFile" depends="compileDomainSourceFiles, copyPropertiesFiles">
+      <echo message="Does nothing"/>
+      <!--
+      <copy file="${domain.source.directory}/com/ndsystems/pet/security/mbeans-descriptors.xml" todir="${domain.build.directory}/WEB-INF/classes/com/ndsystems/pet/security"/>
+      <jar destfile="${domain.build.directory}/pet.jar" basedir="${domain.build.directory}/WEB-INF/classes"/>
+      <jar destfile="lib/smartspaces.jar" basedir="${domain.classes.directory}"/>
+      -->
+   </target>
+
+   <target name="createWarFile" depends="compileDomainSourceFiles"> <!--, copyWebSourceFiles"> copyCascadingStyleSheet, copyExternalLibraryFiles, copyJavaServerPages, copyStrutsConfigurationFile">  createApiDocumentation -->
+      <war destfile="${ant.project.name}.war" needxmlfile="false">      	
+         <fileset dir="${domain.build.directory}"/>
+      </war>
+   </target>
+
+   <target name="deployJarFile" depends="createJarFile">
+      <echo message="Does nothing"/>
+      <!--
+      <copy todir="${tomcat.home}/server/lib">
+         <fileset dir="${domain.build.directory}">
+            <include name="**/pet.jar"/>
+         </fileset>
+      </copy>
+      -->
+   </target>
+
+   <target name="deployWarFile" depends="createWarFile">
+      <echo message="Does nothing, yet"/>
+      <!--
+      <copy file="${domain.build.directory}/pet.war" todir="${tomcat.home}/webapps"/>
+      -->
+   </target>
+
+   <target name="initializeCodeCoverage" if="measuringCodeCoverage">
+      <echo message="Does nothing"/>
+      <!--
+      <clover-setup initString="${test.results.directory}/CodeCoverage.db"/>
+      -->
+   </target>
+
+   <target name="run" depends="createCodeCoverageReport">
+      <java classname="jade.Boot" fork="true">
+         <!-- format for JADE agents
+         <arg value="import:${propertyFile}"/>
+         -->
+         <!-- format for JADE/LEAP agents -->
+         <arg value="${propertyFile}"/>
+         <classpath refid="domain.classpath"/>
+         <jvmarg value="-Djava.library.path=lib"/>
+         <jvmarg value="-mx312m"/>
+      </java>
+   </target>
+
+   <target name="runLocalContainer">
+      <antcall target="run">
+         <param name="propertyFile" value="resources/${projectName}/LocalContainer.properties"/>
+      </antcall>
+   </target>
+
+   <target name="runRemoteContainer">
+      <antcall target="run">
+         <param name="propertyFile" value="resources/${projectName}/RemoteContainer.properties"/>
+      </antcall>
+   </target>
+
+   <target name="runStandalone">
+      <antcall target="run">
+         <param name="propertyFile" value="resources/${projectName}/Standalone.properties"/>
+      </antcall>
+   </target>
+
+   <target name="runUnitTests" depends="compileTestSourceFiles, copyContextDescriptorFile, deployJarFile, deployWarFile"> <!-- , seedDatabaseWithTestData"> -->
+      <echo message="Does nothing"/>
+      <!--
+      <junit failureproperty="failureDetected" fork="yes" printsummary="yes" showoutput="yes">
+         <classpath refid="test-pet.classpath"/>
+         <formatter type="brief" usefile="false"/>
+         <formatter type="plain" usefile="true"/>
+         <formatter type="xml"/>
+         <sysproperty key="connection.driver_class" value="${connection.driver_class}"/>
+         <sysproperty key="connection.password" value="${connection.password}"/>
+         <sysproperty key="connection.url" value="${connection.url}"/>
+         <sysproperty key="connection.username" value="${connection.username}"/>
+         <sysproperty key="hibernate.cglib.use_reflection_optimizer" value="false"/>
+         <sysproperty key="test.data.directory" value="${test.data.directory}"/>
+         <test name="com.ndsystems.pet.TestAll" todir="${test.results.directory}"/>
+      </junit>
+      <fail if="failureDetected"/>
+      -->
+   </target>
+
+</project>
