@@ -98,6 +98,9 @@
 
    <target name="compileHibernateMappingFiles" depends="copyHibernateMappingFiles, copyPropertiesFiles">
       <taskdef name="hibernatetool" classname="org.hibernate.tool.ant.HibernateToolTask" classpathref="hibernate-tools.classpath"/>
+   	<!--
+   	<taskdef name="schemaexport"  classname="org.hibernate.tool.hbm2ddl.SchemaExportTask" classpathref="hibernate-tools.classpath"/>
+   	-->
       <!--
          Ideally, the Hibernate Tools would produce granular results based on
          which mapping files have been updated and:
@@ -137,6 +140,13 @@
          <hbm2ddl console="false" drop="true" export="false" format="true" outputfilename="SmartCommunities.sql"/>
          <hbm2java jdk5="true"/>
       </hibernatetool>
+   	<!--
+   	<schemaexport properties="hibernate.properties" quiet="no" text="no" drop="no" delimiter=";" output="SmartCommunities.sql">
+         <fileset dir="src">
+             <include name="**/*.hbm.xml"/>
+         </fileset>
+      </schemaexport>
+      -->
       <copy todir="${temporary.directory}/$_DatabaseRestructure_$">
          <fileset dir="${temporary.directory}">
             <include name="SmartCommunities.sql"/>
@@ -382,11 +392,16 @@
    </target>
 
    <target name="seedDatabaseWithProductionData" depends="compileHibernateMappingFiles">
+      <echo message="Does nothing"/>
+      <!--
       <sql classpathref="mysql-connector-java.classpath" driver="${connection.driver_class}" url="${connection.url}" userid="${connection.username}" password="${connection.password}">
+      -->
          <!-- Delete unwanted test data. -->
          <!-- Populate the production data table -->
+      <!--
          select count(*) from Category;
       </sql>
+      -->
       <!--
       <taskdef name="dbunit" classname="org.dbunit.ant.DbUnitTask" classpathref="dbunit.classpath"/>
       -->
@@ -401,6 +416,7 @@
    </target>
 
    <target name="seedDatabaseWithTestData" depends="compileHibernateMappingFiles" if="databaseNeedsRebuilding">
+      <echo message="Does nothing"/>
       <!--
       <taskdef name="dbunit" classname="org.dbunit.ant.DbUnitTask" classpathref="dbunit.classpath"/>
       -->
@@ -412,9 +428,10 @@
          <operation src="LifecycleManagement.xml" type="INSERT"/>
       </dbunit>
       -->
+      <!--
       <sql classpathref="mysql-connector-java.classpath" driver="${connection.driver_class}" url="${connection.url}" userid="${connection.username}" password="${connection.password}" escapeprocessing="no" src="${domain.source.directory}/SmartCommunities.sql" onerror="continue"/>
-      <sql classpathref="mysql-connector-java.classpath" driver="${connection.driver_class}" url="${connection.url}" userid="${connection.username}" password="${connection.password}" escapeprocessing="no" src="${domain.source.directory}/CreateLocalities.sql">
-      </sql>
+      <sql classpathref="mysql-connector-java.classpath" driver="${connection.driver_class}" url="${connection.url}" userid="${connection.username}" password="${connection.password}" escapeprocessing="no" src="${domain.source.directory}/CreateLocalities.sql"/>
+      -->
    </target>
 
 </project>

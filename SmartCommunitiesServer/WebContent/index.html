@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <link rel="stylesheet" href="index.css">
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <script type="text/javascript" src="index.js"></script>
+      <script type="text/javascript" src="lib/RGraph/libraries/RGraph.common.core.js"></script>
+      <script type="text/javascript" src="lib/RGraph/libraries/RGraph.line.js"></script>
+      <title>Occupancy and Electrical Consumption Simulation</title>
+   </head>
+   <body onload="initialize();">
+      <h1>Occupancy and Electrical Consumption Simulation</h1>
+      <div id="graphDivision">
+         <canvas id="occupancyCanvas" width="700" height="160">[No canvas support]</canvas>
+         <p class="caption">Occupancy</p>
+         <canvas id="wattsConsumedCanvas" width="700" height="160">[No canvas support]</canvas>
+         <p class="caption">Watts Consumed</p>
+      </div>
+      <div id="controlDivision">
+         <form action="">
+            <p>
+               Show data for
+               <select id="localityIdSelect" onchange="setLocalityId(this);">
+                  <!-- The options are dynamically created. -->
+               </select>
+               for the last
+               <select id="hoursSelect" onchange="setHours(this);">
+                  <option value="3">3</option>
+                  <option value="9">9</option>
+                  <option selected="selected" value="36">36</option>
+                  <option value="72">72</option>
+               </select>
+               hours.
+            </p>
+         </form>
+      </div>
+      <p><span id="debugSpan"></span></p>
+   </body>
+</html> 

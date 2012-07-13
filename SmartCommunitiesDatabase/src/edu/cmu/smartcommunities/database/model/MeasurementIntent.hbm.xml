@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 <hibernate-mapping package="edu.cmu.smartcommunities.database.model">
-   <class name="Measurement" table="Measurement">
-      <id name="id" column="measurementId" type="long">
+   <class name="MeasurementIntent" table="MeasurementIntent">
+      <id name="id" column="measurementIntentId" type="long">
          <generator class="native"/>
       </id>
       <version name="version" type="int"/>
       <many-to-one class="Locality" column="localityId" name="locality" not-null="true" update="false"/>
-      <property name="measurementDateTime" index="measurementDateTimeIndex" not-null="true" type="java.util.Date"/>
       <many-to-one class="MeasurementType" column="measurementTypeId" name="measurementType" not-null="true" update="false"/>
-      <property name="value" not-null="true" type="double"/>
    </class>
 </hibernate-mapping>

@@ -3,7 +3,6 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
 	<classpathentry kind="lib" path="external/apache-log4j-1.2.16/log4j-1.2.16.jar"/>
-	<classpathentry kind="lib" path="external/hibernate-release-4.1.4.Final/lib/optional/c3p0/c3p0-0.9.1.jar"/>
 	<classpathentry kind="lib" path="external/hibernate-release-4.1.4.Final/lib/optional/c3p0/hibernate-c3p0-4.1.4.Final.jar"/>
 	<classpathentry kind="lib" path="external/hibernate-release-4.1.4.Final/lib/required/antlr-2.7.7.jar"/>
 	<classpathentry kind="lib" path="external/hibernate-release-4.1.4.Final/lib/required/dom4j-1.6.1.jar"/>

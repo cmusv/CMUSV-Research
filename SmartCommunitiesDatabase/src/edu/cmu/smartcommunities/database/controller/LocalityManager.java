@@ -1,269 +1,75 @@
 package edu.cmu.smartcommunities.database.controller;
 
+import edu.cmu.smartcommunities.database.controller.hibernate.HibernateUtil;
 import edu.cmu.smartcommunities.database.model.Locality;
-import edu.cmu.smartcommunities.database.model.Measurement;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.StringTokenizer;
+import java.util.List;
+import java.util.Vector;
+import org.hibernate.Query;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class LocalityManager
    {
-   private static final Set<Locality> localitySet = new HashSet<>();
+   private final Logger logger = LoggerFactory.getLogger(LocalityManager.class);
 
-   // Begin workaround data
-   private static final String        fileName        = "/home/mcsmith/Locality.data";
-   private static       Locality      root            = null;
-   private static final boolean       usingWorkaround = true;
-   // End   workaround data
-
-   public Locality getLocality(final String fullyQualifiedName)
+   public List<LeveledLocality> getLeveledLocalities()
       {
-      if (localitySet.size() == 0)
-         {
-         loadLocalities();
-         }
-      return getLocality(new StringTokenizer(fullyQualifiedName, "."),
-                         localitySet);
+      logger.trace("Begin getLeveledLocalities");
+
+      final GetLeveledLocalitiesBusinessTransaction businessTransaction = new GetLeveledLocalitiesBusinessTransaction();
+
+      HibernateUtil.executeBusinessTransaction(businessTransaction);
+      logger.trace("End   getLeveledLocalities");
+      return businessTransaction.leveledLocalityList;
       }
 
-   private Locality getLocality(final StringTokenizer stringTokenizer,
-                                final Set<Locality>   localitySet)
-      {
-      if (stringTokenizer.hasMoreTokens())
-         {
-         final String name = stringTokenizer.nextToken();
-
-         for (Locality locality:  localitySet)
-            {
-            if (name.equals(locality.getName()))
-               {
-               if (stringTokenizer.hasMoreTokens())
-                  {
-                  return getLocality(stringTokenizer,
-                                     locality.getChildLocalitySet());
-                  }
-               else
-                  {
-                  return locality;
-                  }
-               }
-            }
-         }
-      return null;
-      }
-
-   public Measurement getMeasurement(final Locality locality,
-                                     final Date     dateTime)
-      {
-      final GetMeasurementBusinessTransaction businessTransaction = new GetMeasurementBusinessTransaction(locality,
-                                                                                                          dateTime);
-
-      if (usingWorkaround)
-         {
-         synchronized (root)
-            {
-            businessTransaction.execute();
-            writeToDisc();
-            }
-         }
-      else
-         {
-      // HibernateUtil.executeBusinessTransaction(businessTransaction);
-         }
-      return businessTransaction.measurement;
-      }
-
-   public Locality loadLocalities()
-      {
-      if (usingWorkaround)
-         {
-         readFromDisc();
-         return root;
-         }
-      else
-         {
-         final LoadLocalitiesBusinessTransaction businessTransaction = new LoadLocalitiesBusinessTransaction();
-
-      // HibernateUtil.executeBusinessTransaction(businessTransaction);
-         return businessTransaction.locality;
-         }
-      }
-
-   private void readFromDisc()
-      {
-      try
-         {
-         File        file                = new File(fileName);
-         InputStream fileInputStream     = new FileInputStream(file);
-         InputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
-         ObjectInput objectInputStream   = new ObjectInputStream(bufferedInputStream);
-
-         try
-            {
-            System.out.println("Reading from " + file.getCanonicalPath());
-            root = (Locality) objectInputStream.readObject();
-            localitySet.add(root);
-            }
-         catch (ClassNotFoundException e)
-            {
-            e.printStackTrace();
-            }
-         finally
-            {
-            objectInputStream.close();
-            bufferedInputStream.close();
-            fileInputStream.close();
-            }
-         }
-      catch (FileNotFoundException e)
-         {
-         e.printStackTrace();
-         }
-      catch (IOException e)
-         {
-         e.printStackTrace();
-         }
-      }
-
-   public void setLocalOccupancy(final Locality locality,
-                                 final Date     dateTime,
-                                 final int      localOccupancy)
-      {
-      final Measurement                          measurement         = getMeasurement(locality,
-                                                                                      dateTime);
-      final SetLocalOccupancyBusinessTransaction businessTransaction = new SetLocalOccupancyBusinessTransaction(measurement,
-                                                                                                                localOccupancy);
-
-      if (usingWorkaround)
-         {
-         synchronized (root)
-            {
-            businessTransaction.execute();
-            writeToDisc();
-            }
-         }
-      else
-         {
-      // HibernateUtil.executeBusinessTransaction(businessTransaction);
-         }
-      }
-
-   private void writeToDisc()
-      {
-      try
-         {
-         File         file                 = new File(fileName);
-         OutputStream fileOutputStream     = new FileOutputStream(file);
-         OutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
-         ObjectOutput objectOutputStream   = new ObjectOutputStream(bufferedOutputStream);
-
-         try
-            {
-            objectOutputStream.writeObject(root);
-            }
-         finally
-            {
-            objectOutputStream.close();
-            bufferedOutputStream.close();
-            fileOutputStream.close();
-            }
-         }
-      catch (final IOException ioException)
-         {
-         ioException.printStackTrace();
-         }
-      }
-
-   private class GetMeasurementBusinessTransaction
+   private class GetLeveledLocalitiesBusinessTransaction
       implements BusinessTransactionInterface
       {
-      final Date        dateTime;
-      final Locality    locality;
-            Measurement measurement = null;
+      private final List<LeveledLocality> leveledLocalityList = new Vector<>();
 
-      public GetMeasurementBusinessTransaction(final Locality locality,
-                                               final Date     dateTime)
+      private void appendToList(final int      level,
+                                final Locality locality)
          {
-         this.dateTime = dateTime;
-         this.locality = locality;
-         }
-
-      @Override
-      public void execute()
-         {
-         final Set<Measurement> measurementSet = locality.getMeasurementSet();
-
-         for (Measurement measurement:  measurementSet)
-            {
-            if (measurement.getMeasurementDateTime().equals(dateTime))
-               {
-               this.measurement = measurement;
-               }
-            }
-         if (measurement == null)
-            {
-            measurement = new Measurement();
-            measurement.setLocality(locality);
-            measurement.setMeasurementDateTime(dateTime);
-            measurementSet.add(measurement);
-            }
-         }
-      }
-
-   private class LoadLocalitiesBusinessTransaction
-      implements BusinessTransactionInterface
-      {
-      private Locality locality = null;
-
-      @Override
-      public void execute()
-         {
-      // locality = findById(1L, false);
-         loadChildLocalities(locality);
-         localitySet.add(locality);
-         }
-
-      private void loadChildLocalities(final Locality locality)
-         {
+         logger.trace("Begin GetLeveledLocalitiesBusinessTransaction.appendToList");
+         leveledLocalityList.add(new LeveledLocality(level,
+                                                     locality));
          for (Locality childLocality:  locality.getChildLocalitySet())
             {
-            loadChildLocalities(childLocality);
+            appendToList(level + 1,
+                         childLocality);
             }
-         }
-      }
-
-   private class SetLocalOccupancyBusinessTransaction
-      implements BusinessTransactionInterface
-      {
-      private final int         localOccupancy;
-      private final Measurement measurement;
-
-      public SetLocalOccupancyBusinessTransaction(final Measurement measurement,
-                                                  final int         localOccupancy)
-         {
-         this.localOccupancy = localOccupancy;
-         this.measurement = measurement;
+         logger.trace("End   GetLeveledLocalitiesBusinessTransaction.appendToList");
          }
 
       @Override
       public void execute()
          {
-         measurement.setOccupancy(localOccupancy);
-         measurement.setWatts(localOccupancy == 0 ? 0 : measurement.getLocality().getWatts());
+         logger.trace("Begin GetLeveledLocalitiesBusinessTransaction.execute");
+
+         final Query          localityQuery = HibernateUtil.getSessionFactory().getCurrentSession().createQuery("from Locality as locality where locality.parentLocality is null");
+         @SuppressWarnings("unchecked")
+         final List<Locality> localityList  = localityQuery.list();
+
+         for (Locality locality:  localityList)
+            {
+            appendToList(0,
+                         locality);
+            }
+         logger.trace("End   GetLeveledLocalitiesBusinessTransaction.execute");
+         }
+      }
+
+   public static class LeveledLocality
+      {
+      public final int      level;
+      public final Locality locality;
+
+      public LeveledLocality(final int      level,
+                             final Locality locality)
+         {
+         this.level    = level;
+         this.locality = locality;
          }
       }
    }

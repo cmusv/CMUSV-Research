@@ -84,17 +84,6 @@
       <echo message="Does nothing"/>
    </target>
 
-	<!--
-   <target name="copyCascadingStyleSheet" depends="createBuildDirectory">
-      <copy file="${web.source.directory}/index.css" todir="${domain.build.directory}" preservelastmodified="true"/>
-   -->
-   	<!-- OK, let's cheat a little and bundle some additional file types here -->
-	<!--
-      <copy file="${domain.source.directory}/index.html" todir="${domain.build.directory}" preservelastmodified="true"/>
-      <copy file="${domain.source.directory}/index.js" todir="${domain.build.directory}" preservelastmodified="true"/>
-   </target>
-   -->
-
    <target name="copyContextDescriptorFile">
       <echo message="Does nothing"/>
    </target>
@@ -145,14 +134,6 @@
       </copy>
       -->
    </target>
-
-	<!--
-   <target name="copyWebSourceFiles" depends="createBuildDirectory">
-      <copy todir="${domain.build.directory}" preservelastmodified="true">
-         <fileset dir="${basedir}/websrc"/>
-      </copy>
-   </target>
-   -->
 
    <target name="createApiDocumentation" depends="compileDomainSourceFiles">
       <javadoc classpathref="domain.classpath" packagenames="edu.cmu.smartcommunities.*" sourcepath="${domain.source.directory}" destdir="${domain.documentation.directory}"/>

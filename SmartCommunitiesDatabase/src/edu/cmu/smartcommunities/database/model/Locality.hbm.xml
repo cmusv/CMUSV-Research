@@ -14,6 +14,10 @@
          <key column="localityId"/>
          <one-to-many class="Measurement"/>
       </set>
+      <set name="measurementIntentSet" cascade="all-delete-orphan" inverse="true">
+         <key column="localityId"/>
+         <one-to-many class="Measurement"/>
+      </set>
       <property name="name" not-null="true" type="java.lang.String"/>
       <many-to-one class="Locality" column="parentLocalityId" name="parentLocality" update="false"/>
       <property name="watts" not-null="false" type="java.lang.Double"/>

@@ -5,6 +5,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
+import org.hibernate.service.ServiceRegistryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,18 +23,22 @@ import org.slf4j.LoggerFactory;
 
 public class HibernateUtil
    {
-   private static final Logger         logger         = LoggerFactory.getLogger("smartspaces.database.HibernateUtil");
+   private static final Logger         logger         = LoggerFactory.getLogger(HibernateUtil.class);
    private static final SessionFactory sessionFactory;
 
    static
       {
       try
          {
-         sessionFactory = new Configuration().configure().buildSessionFactory();
+         final Configuration configuration = new Configuration();
+
+         configuration.configure();
+         sessionFactory = configuration.buildSessionFactory(new ServiceRegistryBuilder().applySettings(configuration.getProperties()).buildServiceRegistry());
          }
-      catch (Throwable throwable)
+      catch (final Throwable throwable)
          {
-         throwable.printStackTrace();
+         logger.error("Unable to create session factory",
+                      throwable);
          throw new ExceptionInInitializerError(throwable);
          }
       }
@@ -49,10 +54,7 @@ public class HibernateUtil
 
    public static void executeBusinessTransaction(final BusinessTransactionInterface businessTransaction)
       {
-      if (logger.isTraceEnabled())
-         {
-         logger.trace("Begin HibernateUtil.executeBusinessTransaction");
-         }
+      logger.trace("Begin executeBusinessTransaction");
       try
          {
          Session     session     = null;
@@ -60,7 +62,7 @@ public class HibernateUtil
 
          try
             {
-            session = getSessionFactory().getCurrentSession();
+            session = sessionFactory.getCurrentSession();
             logger.info("After getCurrentSession");
             transaction = session.beginTransaction();
             logger.info("After beginTransaction, active?  " + transaction.isActive());
@@ -73,7 +75,7 @@ public class HibernateUtil
                {
                transaction.rollback();
                }
-            throw exception;
+            throw new RuntimeException(exception);
             }
          finally
             {
@@ -88,10 +90,7 @@ public class HibernateUtil
          logger.error(throwable.getMessage());
          throw new RuntimeException(throwable);
          }
-      if (logger.isTraceEnabled())
-         {
-         logger.trace("End   HibernateUtil.executeBusinessTransaction");
-         }
+      logger.trace("End   executeBusinessTransaction");
       }
 
    /**
@@ -103,5 +102,10 @@ public class HibernateUtil
    public static SessionFactory getSessionFactory()
       {
       return sessionFactory;
+      }
+
+   public static void shutdown()
+      {
+      sessionFactory.close();
       }
    }
