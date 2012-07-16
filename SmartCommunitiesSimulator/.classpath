@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
+	<classpathentry kind="lib" path="external/apache-log4j-1.2.16/log4j-1.2.16.jar"/>
+	<classpathentry kind="lib" path="external/jade-4.2/lib/jade.jar" sourcepath="external/jade-4.2/src">
+		<attributes>
+			<attribute name="javadoc_location" value="file:/home/mcsmith/git/CMUSV-Research/SmartCommunitiesSimulator/external/jade-4.2/doc/api/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="external/slf4j-1.6.4/slf4j-api-1.6.4.jar"/>
+	<classpathentry kind="lib" path="external/slf4j-1.6.4/slf4j-log4j12-1.6.4.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/SmartCommunitiesDatabase"/>
+	<classpathentry kind="output" path="classes"/>
+</classpath>
