@@ -1,0 +1,49 @@
+The SmartCommunitiesDatabase project provides for the persistent storage of data for the SmartCommunities projects.
+
+This project has no dependencies on any other SmartCommunities projects.
+
+This project has the following external dependencies that are not stored within this repository, and must be obtained separately, and preferably in the order below:
+
+- Java
+  - Minimum version:      1.7.0
+  - Tested with version:  1.7.0_03
+  - Installation type:    Ubuntu Software Center
+  - Installed from:       openjdk-7-jdk package from "main" Ubuntu repository
+  - Installed to:         <standard installation directory>
+- Ant
+  - Minimum version:      Unknown
+  - Tested with version:  1.8.2
+  - Installation type:    Ubuntu Software Center
+  - Installed from:       ant package from "main" Ubuntu repository
+  - Installed to:         <standard installation directory>
+- Eclipse
+  - Minimum version:      Unknown
+  - Tested with version:  Juno
+  - Installation type:    Manual (Ubuntu repositories include Eclipse, but not Juno, yet)
+  - Installed from:       http://www.eclipse.org
+  - Installed to:         /opt/eclipse-juno
+- Hibernate
+  - Minimum version:      Unknown
+  - Tested with version:  4.1.4.Final
+  - Installation type:    Manual
+  - Installed from:       http://www.hibernate.org
+  - Installed to:         <project>/external/hibernate-release-4.1.4.Final
+- Hibernate Tools
+  - Minimum version:      Unknown
+  - Tested with version:  3.4.0.v20120629-1645-H995-M1
+  - Installation type:    Eclipse plugin installation 
+  - Installed from:       JBoss Tools - Core - Nightly Build Update Site - http://download.jboss.org/jbosstools/updates/nightly/core/trunk
+  - Installed to:         <standard Eclipse plugins directory>
+- SLF4J
+  - Minimum version:      Unknown
+  - Tested with version:  1.6.4
+  - Installation type:    Manual
+  - Installed from:       http://www.slf4j.org
+  - Installed to:         <project>/external/slf4j-1.6.4
+- Log4J
+  - Minimum version:      Unknown
+  - Tested with version:  1.2.16
+  - Installation type:    Manual
+  - Installed from:       http://www.apache.org
+  - Installed to:         <project>/external/apache-log4j-1.2.16
+  
