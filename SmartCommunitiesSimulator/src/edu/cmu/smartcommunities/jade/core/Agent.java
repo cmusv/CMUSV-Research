@@ -1,16 +1,17 @@
 package edu.cmu.smartcommunities.jade.core;
 
 import jade.util.ExtendedProperties;
-import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadMXBean;
+// import java.lang.management.ManagementFactory;
+// import java.lang.management.ThreadMXBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Agent
    extends jade.core.Agent
    {
-   protected final ExtendedProperties extendedProperties = new ExtendedProperties();
-   protected final Logger             logger             = LoggerFactory.getLogger(getClass());
+   protected        final ExtendedProperties extendedProperties = new ExtendedProperties();
+   protected        final Logger             logger             = LoggerFactory.getLogger(getClass());
+   private   static final long               serialVersionUID   = -1075797089153518750L;
 
    protected Agent()
       {
@@ -32,12 +33,12 @@ public class Agent
 */
       logger.trace("End   <init>");
       }
-
+/*
    private void logCpuTime(final boolean startOfTransaction)
       {
       logger.debug((startOfTransaction ? "Start:  " : "End:  ") + ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime());
       }
-
+*/
    public void setExtendedProperties(final String[] arguments)
       {
       logger.trace("Begin setExtendedProperties");
