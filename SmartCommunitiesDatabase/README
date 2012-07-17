@@ -22,6 +22,12 @@ This project has the following external dependencies that are not stored within 
   - Installation type:    Manual (Ubuntu repositories include Eclipse, but not Juno, yet)
   - Installed from:       http://www.eclipse.org
   - Installed to:         /opt/eclipse-juno
+- EGit
+  - Minimum version:      Unknown
+  - Tested with version:  2.0.0.201206130900-r
+  - Installation type:    Eclipse plugin installation
+  - Installed from:       EGit Update Site - http://download.eclipse.org/egit/updates
+  - Installed to:         <standard Eclipse plugins directory>
 - Hibernate
   - Minimum version:      Unknown
   - Tested with version:  4.1.4.Final
@@ -31,7 +37,7 @@ This project has the following external dependencies that are not stored within 
 - Hibernate Tools
   - Minimum version:      Unknown
   - Tested with version:  3.4.0.v20120629-1645-H995-M1
-  - Installation type:    Eclipse plugin installation 
+  - Installation type:    Eclipse plugin installation
   - Installed from:       JBoss Tools - Core - Nightly Build Update Site - http://download.jboss.org/jbosstools/updates/nightly/core/trunk
   - Installed to:         <standard Eclipse plugins directory>
 - SLF4J
