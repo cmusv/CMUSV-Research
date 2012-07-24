@@ -1,5 +1,6 @@
 package edu.cmu.smartcommunities.database.controller.hibernate;
 
+/*
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -13,6 +14,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+*/
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -30,9 +32,9 @@ public class LocalityDAO
    private static final Set<Locality> localitySet = new HashSet<>();
 
    // Begin workaround data
-   private static final String        fileName        = "/home/mcsmith/Locality.data";
-   private static       Locality      root            = null;
-   private static final boolean       usingWorkaround = true;
+// private static final String        fileName        = "/home/mcsmith/Locality.data";
+// private static       Locality      root            = null;
+// private static final boolean       usingWorkaround = true;
    // End   workaround data
 
    @Override
@@ -86,7 +88,7 @@ public class LocalityDAO
       {
       final GetMeasurementBusinessTransaction businessTransaction = new GetMeasurementBusinessTransaction(locality,
                                                                                               dateTime);
-
+/*
       if (usingWorkaround)
          {
          synchronized (root)
@@ -97,14 +99,16 @@ public class LocalityDAO
          }
       else
          {
+*/
          HibernateUtil.executeBusinessTransaction(businessTransaction);
-         }
+//       }
       return businessTransaction.measurement;
       }
 
    @Override
    public Locality loadLocalities()
       {
+/*
       if (usingWorkaround)
          {
          readFromDisc();
@@ -112,13 +116,14 @@ public class LocalityDAO
          }
       else
          {
+*/
          final LoadLocalitiesBusinessTransaction businessTransaction = new LoadLocalitiesBusinessTransaction();
 
          HibernateUtil.executeBusinessTransaction(businessTransaction);
          return businessTransaction.locality;
-         }
+//       }
       }
-
+/*
    private void readFromDisc()
       {
       try
@@ -154,12 +159,14 @@ public class LocalityDAO
          e.printStackTrace();
          }
       }
-
+*/
    @Override
    public void setLocalOccupancy(final Locality locality,
                                  final Date     dateTime,
                                  final int      localOccupancy)
       {
+      throw new IllegalStateException("Not yet implemented.");
+/*
       final Measurement                          measurement         = getMeasurement(locality,
                                                                                       dateTime);
       final SetLocalOccupancyBusinessTransaction businessTransaction = new SetLocalOccupancyBusinessTransaction(measurement,
@@ -177,8 +184,9 @@ public class LocalityDAO
          {
          HibernateUtil.executeBusinessTransaction(businessTransaction);
          }
+*/
       }
-
+/*
    private void writeToDisc()
       {
       try
@@ -204,8 +212,8 @@ public class LocalityDAO
          ioException.printStackTrace();
          }
       }
-
-   private class GetMeasurementBusinessTransaction
+*/
+   private static class GetMeasurementBusinessTransaction
       implements BusinessTransactionInterface
       {
       final Date        dateTime;
@@ -262,8 +270,8 @@ public class LocalityDAO
             }
          }
       }
-
-   private class SetLocalOccupancyBusinessTransaction
+/*
+   private static class SetLocalOccupancyBusinessTransaction
       implements BusinessTransactionInterface
       {
       private final int         localOccupancy;
@@ -279,8 +287,10 @@ public class LocalityDAO
       @Override
       public void execute()
          {
-         measurement.setOccupancy(localOccupancy);
-         measurement.setWatts(localOccupancy == 0 ? 0 : measurement.getLocality().getWatts());
+         throw new IllegalStateException("Not yet implemented.");
+      // measurement.setOccupancy(localOccupancy);
+      // measurement.setWatts(localOccupancy == 0 ? 0 : measurement.getLocality().getWatts());
          }
       }
+*/
    }
