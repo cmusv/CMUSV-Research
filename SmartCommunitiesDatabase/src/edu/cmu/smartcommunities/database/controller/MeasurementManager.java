@@ -4,6 +4,7 @@ import edu.cmu.smartcommunities.database.controller.hibernate.HibernateUtil;
 import edu.cmu.smartcommunities.database.model.Locality;
 import edu.cmu.smartcommunities.database.model.Measurement;
 import edu.cmu.smartcommunities.database.model.MeasurementType;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -16,8 +17,10 @@ import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 
 public class MeasurementManager
+   implements Serializable
    {
    private static final String measurementDateTimeColumn = "measurementDateTime";
+   private static final long   serialVersionUID          = -6876169729675513328L;
 
    public Map<Date, Measurement> getMeasurementMap(final Date   beginDateTime,
                                                    final Date   endDateTime,
@@ -33,10 +36,10 @@ public class MeasurementManager
       return businessTransaction.measurementMap;
       }
 
-   public void putMeasurement(final Long   localityId,
-                              final Date   measurementDateTime,
-                              final String name,
-                              final Double value)
+   public Measurement putMeasurement(final long   localityId,
+                                     final Date   measurementDateTime,
+                                     final String name,
+                                     final double value)
       {
       final PutMeasurementBusinessTransaction businessTransaction = new PutMeasurementBusinessTransaction(localityId,
                                                                                                           measurementDateTime,
@@ -44,20 +47,21 @@ public class MeasurementManager
                                                                                                           value);
 
       HibernateUtil.executeBusinessTransaction(businessTransaction);
+      return businessTransaction.measurement;
       }
 
-   private class GetMeasurementsBusinessTransaction
+   private static class GetMeasurementsBusinessTransaction
       implements BusinessTransactionInterface
       {
       private final Date                   beginDateTime;
       private final Date                   endDateTime;
-      private final Long                   localityId;
+      private final long                   localityId;
       private final Map<Date, Measurement> measurementMap = new HashMap<>();
       private final String                 name;
 
       public GetMeasurementsBusinessTransaction(final Date   beginDateTime,
                                                 final Date   endDateTime,
-                                                final Long   localityId,
+                                                final long   localityId,
                                                 final String name)
          {
          this.beginDateTime = beginDateTime;
@@ -82,7 +86,10 @@ public class MeasurementManager
       public void execute()
          {
          final Session         session         = HibernateUtil.getSessionFactory().getCurrentSession();
-         final MeasurementType measurementType = (MeasurementType) session.createQuery("from MeasurementType as measurementType where measurementType.name = ?").setString(0, name).uniqueResult();
+         final MeasurementType measurementType = (MeasurementType) session.createQuery("from MeasurementType as measurementType where measurementType.name = :name")
+                                                                          .setString("name", name)
+                                                                          .uniqueResult();
+         
 
          if (measurementType != null)
             {
@@ -156,15 +163,16 @@ public class MeasurementManager
          }
       }
 
-   private class PutMeasurementBusinessTransaction
+   private static class PutMeasurementBusinessTransaction
       implements BusinessTransactionInterface
       {
-      private final Long   localityId;
-      private final Date   measurementDateTime;
-      private final String name;
-      private final double value;
+      private final long        localityId;
+      private       Measurement measurement;
+      private final Date        measurementDateTime;
+      private final String      name;
+      private final double      value;
 
-      public PutMeasurementBusinessTransaction(final Long    localityId,
+      public PutMeasurementBusinessTransaction(final long    localityId,
                                                final Date    measurementDateTime,
                                                final String  name,
                                                final double  value)
@@ -179,7 +187,8 @@ public class MeasurementManager
       public void execute()
          {
          final Session         session         = HibernateUtil.getSessionFactory().getCurrentSession();
-         final MeasurementType measurementType = (MeasurementType) session.createQuery("from MeasurementType as measurementType where measurementType.name = ?").setString(0, name).uniqueResult();
+         final MeasurementType measurementType = (MeasurementType) session.createQuery("from MeasurementType as measurementType where measurementType.name = :name")
+                                                                          .setString("name", name).uniqueResult();
 
          if (measurementType != null)
             {
@@ -197,8 +206,7 @@ public class MeasurementManager
                {
                case 0:
                   {
-                  final Measurement measurement = new Measurement();
-
+                  measurement = new Measurement();
                   locality.getMeasurementSet().add(measurement);
                   measurement.setLocality(locality);
                   measurement.setMeasurementDateTime(measurementDateTime);
@@ -209,8 +217,7 @@ public class MeasurementManager
                   }
                case 1:
                   {
-                  final Measurement measurement = measurementList.get(0);
-
+                  measurement = measurementList.get(0);
                   measurement.setValue(value);
                   session.saveOrUpdate(measurement);
                   break;
