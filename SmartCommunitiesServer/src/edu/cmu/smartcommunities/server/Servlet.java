@@ -99,10 +99,13 @@ public class Servlet
 
             logger.warn("Parameters specified:  " + parameterMap.size());
             logger.warn("Begin dumping out parameters");
-            for (String name:  parameterMap.keySet())
+         // for (String name:  parameterMap.keySet())
+            for (Map.Entry<String, String[]> entry:  parameterMap.entrySet())
                {
-               logger.warn("Name:  >" + name + "<");
-               for (String value:  parameterMap.get(name))
+            // logger.warn("Name:  >" + name + "<");
+               logger.warn("Name:  >" + entry.getKey());
+            // for (String value:  parameterMap.get(name))
+               for (String value:  entry.getValue())
                   {
                   logger.warn("Value:  >" + value + "<");
                   }
@@ -293,9 +296,13 @@ public class Servlet
       //       Double                temperature         = null;
       //       Double                watts               = null;
 
-         for (String parameter:  parameterMap.keySet())
+      // for (String parameter:  parameterMap.keySet())
+         for (Map.Entry<String, String[]> entry:  parameterMap.entrySet())
             {
-            switch (parameter)
+            final String key = entry.getKey();
+
+         // switch (parameter)
+            switch (key)
                {
                case localityIdParameter:
                case measurementDateTimeParameter:
@@ -307,8 +314,10 @@ public class Servlet
                   {
                   measurementManager.putMeasurement(localityId,
                                                     measurementDateTime,
-                                                    parameter,
-                                                    Double.valueOf(parameterMap.get(parameter)[0]));
+                                                 // parameter,
+                                                 // Double.valueOf(parameterMap.get(parameter)[0]));
+                                                    key,
+                                                    Double.valueOf(entry.getValue()[0]));
                   }
                }
             }
