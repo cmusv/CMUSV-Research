@@ -5,48 +5,63 @@ This project has no dependencies on any other SmartCommunities projects.
 This project has the following external dependencies that are not stored within this repository, and must be obtained separately, and preferably in the order below:
 
 - Java
+  - Optionality:          Required
   - Minimum version:      1.7.0
   - Tested with version:  1.7.0_03
   - Installation type:    Ubuntu Software Center
   - Installed from:       openjdk-7-jdk package from "main" Ubuntu repository
   - Installed to:         <standard installation directory>
 - Ant
+  - Optionality:          Required
   - Minimum version:      Unknown
   - Tested with version:  1.8.2
   - Installation type:    Ubuntu Software Center
   - Installed from:       ant package from "main" Ubuntu repository
   - Installed to:         <standard installation directory>
 - Eclipse
+  - Optionality:          Required
   - Minimum version:      Unknown
   - Tested with version:  Juno
   - Installation type:    Manual (Ubuntu repositories include Eclipse, but not Juno, yet)
   - Installed from:       http://www.eclipse.org
   - Installed to:         /opt/eclipse-juno
 - EGit
+  - Optionality:          Required
   - Minimum version:      Unknown
   - Tested with version:  2.0.0.201206130900-r
   - Installation type:    Eclipse plugin installation
   - Installed from:       EGit Update Site - http://download.eclipse.org/egit/updates
   - Installed to:         <standard Eclipse plugins directory>
-- Hibernate
+- FindBug
+  - Optionality:          Optional
   - Minimum version:      Unknown
-  - Tested with version:  4.1.4.Final
-  - Installation type:    Manual
-  - Installed from:       http://www.hibernate.org
-  - Installed to:         <project>/external/hibernate-release-4.1.4.Final
+  - Tested with version:  2.0.1.20120712
+  - Installation type:    Eclipse plugin installation
+  - Installed from:       FindBugs Update Site - http://findbugs.cs.umd.edu/eclipse
+  - Installed to:         <standard Eclipse plugins directory>
 - Hibernate Tools
+  - Optionality:          Required
   - Minimum version:      Unknown
   - Tested with version:  3.4.0.v20120629-1645-H995-M1
   - Installation type:    Eclipse plugin installation
   - Installed from:       JBoss Tools - Core - Nightly Build Update Site - http://download.jboss.org/jbosstools/updates/nightly/core/trunk
   - Installed to:         <standard Eclipse plugins directory>
+- Hibernate
+  - Optionality:          Required
+  - Minimum version:      Unknown
+  - Tested with version:  4.1.4.Final
+  - Installation type:    Manual
+  - Installed from:       http://www.hibernate.org
+  - Installed to:         <project>/external/hibernate-release-4.1.4.Final
 - SLF4J
+  - Optionality:          Required
   - Minimum version:      Unknown
   - Tested with version:  1.6.4
   - Installation type:    Manual
   - Installed from:       http://www.slf4j.org
   - Installed to:         <project>/external/slf4j-1.6.4
 - Log4J
+  - Optionality:          Required (for now)
   - Minimum version:      Unknown
   - Tested with version:  1.2.16
   - Installation type:    Manual
