@@ -1,0 +1,20 @@
+The SmartCommunitiesServer project provides for the web servlet and web clients used by the SmartCommunities projects.  (NOTE:  The web clients developed by Art Botterell are not currently stored within this repository, although a good case could be made for that to be done.)
+
+This project has a dependencies on the SmartCommunitiesDatabase project.  That project should be setup before starting to set up this project.
+
+This project has the following external dependencies that are not stored within this repository, and must be obtained separately, and preferably in the order below:
+
+- Glassfish
+  - Optionality:          Required
+  - Minimum version:      Unknown
+  - Tested with version:  3.1.2.201205030845 (avoid 3.1.1 due to a nasty bug regarding logging level changes with the web-based administrative user interface)
+  - Installation type:    Eclipse plug-in installation
+  - Installed from:       Glassfish - http://download.java.net/glassfish/eclipse/juno
+  - Installed to:         <standard Eclipse plugins directory>
+- RGraph
+  - Optionality:          Required
+  - Minimum version:      Unknown
+  - Tested with version:  RGraph2_2012-06-01-stable
+  - Installation type:    Manual
+  - Installed from:       http://www.rgraph.net
+  - Installed to:         <project>/WebContent/lib/RGraph
