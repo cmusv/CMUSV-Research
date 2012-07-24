@@ -18,6 +18,20 @@ This project has the following external dependencies that are not stored within 
   - Installation type:    Ubuntu Software Center
   - Installed from:       ant package from "main" Ubuntu repository
   - Installed to:         <standard installation directory>
+- MySQL Server
+  - Optionality:          Required
+  - Minimum version:      Unknown
+  - Tested with version:  5.5.24-0ubuntu0.12.04.1  
+  - Installation type:    Ubuntu Software Center
+  - Installed from:       mysql-server package from "main" Ubuntu repository
+  - Installed to:         <standard installation directory>
+- MySQL Client
+  - Optionality:          Required
+  - Minimum version:      Unknown
+  - Tested with version:  5.5.24-0ubuntu0.12.04.1  
+  - Installation type:    Ubuntu Software Center
+  - Installed from:       mysql-client package from "main" Ubuntu repository
+  - Installed to:         <standard installation directory>
 - Eclipse
   - Optionality:          Required
   - Minimum version:      Unknown
@@ -67,4 +81,10 @@ This project has the following external dependencies that are not stored within 
   - Installation type:    Manual
   - Installed from:       http://www.apache.org
   - Installed to:         <project>/external/apache-log4j-1.2.16
-  
+- JDBC Driver for MySQL (Connector/J)
+  - Optionality:          Required
+  - Minimum version:      Unknown
+  - Tested with version:  5.1.20
+  - Installation type:    Manual
+  - Installed from:       http://www.mysql.com/products/connector
+  - Installed to:         <project>/external/mysql-connector-java-5.1.20
