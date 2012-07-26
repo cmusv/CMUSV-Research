@@ -29,10 +29,10 @@
       <pathelement location="${jboss-transaction.jar}"/>
    </path>
 
-	<path id="javaee.classpath">
-	   <!-- required for servlets -->
-		<pathelement location="${javax.servlet-api.jar}"/>
-	</path>
+   <path id="javaee.classpath">
+      <!-- required for servlets -->
+      <pathelement location="${javax.servlet-api.jar}"/>
+   </path>
 
    <path id="mysql-connector-java.classpath">
       <!-- required for database interaction -->
@@ -46,31 +46,16 @@
       <pathelement location="${log4j.jar}"/>
    </path>
 
-	<path id="SmartCommunitiesDatabase.classpath">
-	   <pathelement location="${SmartCommunitiesDatabase.jar}"/>
-	</path>
+   <path id="SmartCommunitiesDatabase.classpath">
+      <pathelement location="${SmartCommunitiesDatabase.jar}"/>
+   </path>
 
    <target name="cleanBuildDirectory">
-   	<delete includeEmptyDirs="true">
-   		<!--
-         <fileset dir="${domain.build.directory}" includes="index.*"/>
-         <fileset dir="${domain.build.directory}/lib"/>
-         -->
-         <fileset dir="${domain.build.directory}/WEB-INF/lib"/>
-   		<fileset dir="${domain.classes.directory}"/>
+      <delete includeEmptyDirs="true">
+         <fileset dir="${domain.classes.directory}"/>
+         <fileset dir="${domain.documentation.directory}"/>
+         <fileset dir="${domain.library.directory}"/>
       </delete>
-      <!--
-      <delete dir="${domain.build.directory}"/>
-      <delete>
-         <fileset dir="${domain.source.directory}">
-            <include name="smartspaces/database/model/*.java"/>
-            <exclude name="smartspaces/database/model/*Comparator.java"/>
-         </fileset>
-      </delete>
-      <ant copy newer filesdelete dir="${test.build.directory}"/>
-      <delete dir="${test.results.directory}"/>
-      <delete file="${domain.source.directory}/hibernate.cfg.xml"/>
-      -->
    </target>
 
    <target name="compileDomainSourceFiles" depends="copyExternalLibraryFiles">
@@ -89,19 +74,19 @@
    </target>
 
    <target name="copyExternalLibraryFiles" depends="createBuildDirectory">
-   	<!--
-   	<copy todir="${domain.build.directory}/lib/RGraph" preservelastmodified="true">
-   	   <fileset dir="${RGraphHome}"/>
-   	</copy>
-   	-->
-   	<copy todir="${domain.build.directory}/WEB-INF/lib" preservelastmodified="true">
-   	   <fileset dir="${SmartCommunitiesDatabase.home}/lib"/>
-   	</copy>
+      <!--
+      <copy todir="${domain.build.directory}/lib/RGraph" preservelastmodified="true">
+         <fileset dir="${RGraphHome}"/>
+      </copy>
+      -->
+      <copy todir="${domain.library.directory}" preservelastmodified="true">
+         <fileset dir="${SmartCommunitiesDatabase.home}/build/lib"/>
+      </copy>
    </target>
 
    <target name="copyJavaServerPages" depends="createBuildDirectory">
       <echo message="Does nothing"/>
-   	<!--
+      <!--
       <copy todir="${domain.build.directory}">
          <fileset dir="${domain.web.directory}/..">
             <include name="**/*.gif"/>
@@ -140,16 +125,9 @@
    </target>
 
    <target name="createBuildDirectory"> <!-- depends="cleanBuildDirectory"> -->
-      <!--
-      <mkdir dir="${domain.build.directory}"/>
-      <mkdir dir="${domain.build.directory}/lib"/>
-      -->
-   	<mkdir dir="${domain.build.directory}/WEB-INF/lib"/>
       <mkdir dir="${domain.classes.directory}"/>
-   	<!--
-      <mkdir dir="${test.build.directory}"/>
-      <mkdir dir="${test.results.directory}"/>
-      -->
+      <mkdir dir="${domain.documentation.directory}"/>
+      <mkdir dir="${domain.library.directory}"/>
    </target>
 
    <target name="createCodeCoverageReport" depends="initializeCodeCoverage, runUnitTests" if="measuringCodeCoverage">
