@@ -38,26 +38,26 @@
    <path id="hibernate.classpath">
       <!-- required for database interaction -->
       <pathelement location="${antlr.jar}"/>
-   	<pathelement location="${c3p0.jar}"/>
+      <pathelement location="${c3p0.jar}"/>
       <pathelement location="${dom4j.jar}"/>
-   	<pathelement location="${hibernate-c3p0.jar}"/>
-   	<pathelement location="${hibernate-commons-annotation.jar}"/>
-   	<pathelement location="${hibernate-core.jar}"/>
-   	<pathelement location="${hibernate-jpa.jar}"/>
-   	<pathelement location="${javassist.jar}"/>
-   	<pathelement location="${jboss-logging.jar}"/>
-   	<pathelement location="${jboss-transaction.jar}"/>
+      <pathelement location="${hibernate-c3p0.jar}"/>
+      <pathelement location="${hibernate-commons-annotation.jar}"/>
+      <pathelement location="${hibernate-core.jar}"/>
+      <pathelement location="${hibernate-jpa.jar}"/>
+      <pathelement location="${javassist.jar}"/>
+      <pathelement location="${jboss-logging.jar}"/>
+      <pathelement location="${jboss-transaction.jar}"/>
    </path>
 
    <path id="hibernate-tools.classpath">
       <!-- required for database interaction -->
       <path refid="hibernate.classpath"/>
       <path refid="mysql-connector-java.classpath"/>
-   	<pathelement location="${commons-logging.jar}"/>
+      <pathelement location="${commons-logging.jar}"/>
       <pathelement location="${freemarker.jar}"/>
-   	<pathelement location="${hibernate.jar}"/>
+      <pathelement location="${hibernate.jar}"/>
       <pathelement location="${hibernate-tools.jar}"/>
-   	<pathelement location="${jtidy.jar}"/>
+      <pathelement location="${jtidy.jar}"/>
       <pathelement location="${log4j.jar}"/>
    </path>
 
@@ -243,7 +243,7 @@
 
    <target name="createBuildDirectory"> <!-- depends="cleanBuildDirectory"> -->
       <mkdir dir="${domain.classes.directory}"/>
-   	<mkdir dir="${domain.build.directory}/lib"/>
+      <mkdir dir="${domain.build.directory}/lib"/>
       <!--
       <mkdir dir="${test.build.directory}"/>
       <mkdir dir="${test.results.directory}"/>
