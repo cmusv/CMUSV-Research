@@ -49,7 +49,7 @@ public class HibernateUtil
     * @param businessTransaction The class implementing <code>BusinessTransactionInterface</code>
     *                            that contains the business logic.
     *
-    * @see   smartspaces.database.controller.hibernate.BusinessTransactionInterface
+    * @see   edu.cmu.smartcommunities.database.controller.BusinessTransactionInterface
     */
 
    public static void executeBusinessTransaction(final BusinessTransactionInterface businessTransaction)
