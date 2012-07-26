@@ -19,5 +19,5 @@
 	<classpathentry kind="lib" path="external/mysql-connector-java-5.1.20/mysql-connector-java-5.1.20-bin.jar"/>
 	<classpathentry kind="lib" path="external/slf4j-1.6.4/slf4j-api-1.6.4.jar" sourcepath="external/slf4j-1.6.4/slf4j-api-1.6.4-sources.jar"/>
 	<classpathentry kind="lib" path="external/slf4j-1.6.4/slf4j-log4j12-1.6.4.jar"/>
-	<classpathentry kind="output" path="classes"/>
+	<classpathentry kind="output" path="build/classes"/>
 </classpath>
