@@ -155,7 +155,7 @@
       -->
    </target>
 
-   <target name="createWarFile" depends="compileDomainSourceFiles"> <!--, copyWebSourceFiles"> copyCascadingStyleSheet, copyExternalLibraryFiles, copyJavaServerPages, copyStrutsConfigurationFile">  createApiDocumentation -->
+   <target name="createWarFile" depends="createApiDocumentation"> <!--, copyWebSourceFiles"> copyCascadingStyleSheet, copyExternalLibraryFiles, copyJavaServerPages, copyStrutsConfigurationFile">  createApiDocumentation -->
       <war destfile="${ant.project.name}.war" needxmlfile="false">      	
          <fileset dir="${domain.build.directory}"/>
       </war>
