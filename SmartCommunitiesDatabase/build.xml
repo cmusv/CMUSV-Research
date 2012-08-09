@@ -341,7 +341,7 @@
       </antcall>
    </target>
 
-   <target name="run" depends="createCodeCoverageReport, seedDatabaseWithProductionData">
+   <target name="run" depends="createApiDocumentation, createCodeCoverageReport, seedDatabaseWithProductionData">
       <java classname="jade.Boot" fork="true">
          <!-- format for JADE agents
          <arg value="import:${propertyFile}"/>
