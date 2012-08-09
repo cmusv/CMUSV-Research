@@ -210,6 +210,7 @@ public class MeasurementManager
                   locality.getMeasurementSet().add(measurement);
                   measurement.setLocality(locality);
                   measurement.setMeasurementDateTime(measurementDateTime);
+                  measurement.setMeasurementType(measurementType);
                   measurement.setValue(value);
                   session.saveOrUpdate(locality);
                   session.saveOrUpdate(measurement);
