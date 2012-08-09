@@ -31,28 +31,21 @@ public class Servlet
    extends HttpServlet
    {
    private static final String               applicationText              = "application/text";
-// private static final String               carbonDioxideParameter       = "carbonDioxide";
    private static final String               countParameter               = "count";
-// private static final DAOFactory           daoFactory                   = new DAOFactory();
-// private static final String               humidityParameter            = "humidity";
    private static final String               leveledLocalitiesParameter   = "leveledLocalities";
-// private static final String               lightParameter               = "light";
-// private static final String               localOccupancyParameter      = "localOccupancy";
-// private static final LocalityDAOInterface localityDAO                  = daoFactory.getLocalityDAO();
    private static final String               localityIdParameter          = "localityId";
    private        final LocalityManager      localityManager              = new LocalityManager();
    private        final Logger               logger                       = LoggerFactory.getLogger(Servlet.class);
    private static final String               measureParameter             = "measure";
    private static final String               measurementDateTimeParameter = "measurementDateTime";
    private        final MeasurementManager   measurementManager           = new MeasurementManager();
+   private static final String               measurementTypeParameter     = "measurementType";
+   private static final String               measurementTypesParameter    = "measurementTypes";
    private static final String               measurementsParameter        = "measurements";
-// private static final String               occupancyParameter           = "occupancy";
    private static final String               resourceParameter            = "resource";
    private static final long                 serialVersionUID             = -4438267678361119983L;
    private        final DateFormat           simpleDateFormat             = new SimpleDateFormat("yyyyMMddHHmm");
-// private static final String               temperatureParameter         = "temperature";
    private        final TimeZone             utcTimeZone                  = TimeZone.getTimeZone("UTC");
-// private static final String               wattsParameter               = "watts";
 
    /**
     * @see HttpServlet#HttpServlet()
@@ -65,6 +58,98 @@ public class Servlet
       }
 
    /**
+    * Requests a representation of the specified resource.  The HTTP GET request should be in the following form:
+    * 
+    * <code>http://<em>hostname[:port]</em>/SmartCommunitiesServer/servlet?<em>parameters</em>
+    * 
+    * where:
+    * 
+    * <dl>
+    *    <dt>hostname</dt>
+    *    <dd>the name of the server hosting the servlet.</dd>
+    *    <dt>port</dt>
+    *    <dd>the port number to which the server is listening.</dd>
+    *    <dt>parameters</dt>
+    *    <dd>an ampersand-concatenated list of the key-value pairs.</dd>
+    * </dl>
+    * 
+    * Only one key value (<code>resource</code>) is required, although other key-value pairs are required or accepted,
+    * depending on the value of <code>resource</code>.  The accepted values for <code>resource</code> are:
+    * 
+    * <dl>
+    *    <dt>leveledLocalities</dt>
+    *    <dd>returns a list of localities known to the system.</dd>
+    *    <dt>measurementTypes</dt>
+    *    <dd>returns a list of the measurement types known to the system.</dd>
+    *    <dt>measurements</dt>
+    *    <dd>returns a list of measurements matching the provided query criteria.</dd>
+    * </dl>
+    * 
+    * <p><strong>Leveled Localities</strong></p>
+    * 
+    * The system maintains localities in a single-rooted tree structure.  Every locality (other than the root locality) is
+    * a child of another locality in the system.  The response to a request for leveled localities is a newline-delimited
+    * list of locality entities.  Each locality has a <code>level</code> indicating its generational depth in the tree.  A
+    * non-root locality with level <em>n</em> is a child of the most closely preceding locality with a level <em>n-1</em>.
+    * Each locality entity is a comma-delimited list of attributes.  The attributes are:
+    * 
+    * <dl>
+    *    <dt>level</dt>
+    *    <dd>0 for the root locality, 1 for the root locality's children, 2 for the root locality's grandchildren, etc.</dd>
+    *    <dt>localityId</dt>
+    *    <dd>the unique identifier for the locality.</dd>
+    *    <dt>name</dt>
+    *    <dd>the name of the locality.</dd>
+    * </dl>
+    * 
+    * <p>Example request and response:</p>
+    *
+    * <p><strong>Measurement Types</strong></p>
+    *
+    * The system maintains a list of the allowed measurement types.  This request provides a newline-delimited list of the
+    * measurement types.
+    * 
+    * <p><strong>Measurements</strong></p>
+    * 
+    * Additional key-value pairs must be provided to retrieve measurements from the system.
+    * 
+    * <table>
+    *    <thead>
+    *       <tr>
+    *          <th>Parameter name</th>
+    *          <th>Parameter value</th>
+    *          <th>Description</th>
+    *          <th>Optionality</th>
+    *       </tr>
+    *    </thead>
+    *    <tbody>
+    *       <tr>
+    *          <td><code>count</code></td>
+    *          <td><em>integer</em></td>
+    *          <td>The maximum number of measurements to return.</td>
+    *          <td>Required</td>
+    *       </tr>
+    *       <tr>
+    *          <td><code>localityId</code></td>
+    *          <td><em>integer</em></td>
+    *          <td>The unique identifier for the locality to which the measurements apply.</td>
+    *          <td>Required</td>
+    *       </tr>
+    *       <tr>
+    *          <td><code>measurementType</code></td>
+    *          <td><em>string</em></td>
+    *          <td>The type of measurement being requested.</td>
+    *          <td>Required</td>
+    *       </tr>
+    *       <tr>
+    *          <td><code>measurementDateTime</code></td>
+    *          <td><em>yyyymmddhhmm</em></td>
+    *          <td>The date/time, represented in UTC, of the last measurement of interest.</td>
+    *          <td>Optional</td>
+    *       </tr>
+    *    </tbody>
+    * </table>
+    * 
     * @see HttpServlet#doGet(HttpServletRequest  request,
     *                        HttpServletResponse response)
     */
@@ -79,19 +164,27 @@ public class Servlet
 
       final String resource = request.getParameter(resourceParameter);
 
-      if (leveledLocalitiesParameter.equals(resource))
+      switch (resource)
          {
-         getLeveledLocalities(request,
-                              response);
-         }
-      else
-         {
-         if (measurementsParameter.equals(resource))
+         case leveledLocalitiesParameter:
+            {
+            getLeveledLocalities(request,
+                                 response);
+            break;
+            }
+         case measurementTypesParameter:
+            {
+            getMeasurementTypes(request,
+                                response);
+            break;
+            }
+         case measurementsParameter:
             {
             getMeasurements(request,
                             response);
+            break;
             }
-         else
+         default:
             {
             logger.warn("Invalid parameter specification");
 
@@ -99,12 +192,9 @@ public class Servlet
 
             logger.warn("Parameters specified:  " + parameterMap.size());
             logger.warn("Begin dumping out parameters");
-         // for (String name:  parameterMap.keySet())
             for (Map.Entry<String, String[]> entry:  parameterMap.entrySet())
                {
-            // logger.warn("Name:  >" + name + "<");
-               logger.warn("Name:  >" + entry.getKey());
-            // for (String value:  parameterMap.get(name))
+               logger.warn("Name:  >" + entry.getKey() + "<");
                for (String value:  entry.getValue())
                   {
                   logger.warn("Value:  >" + value + "<");
@@ -117,9 +207,15 @@ public class Servlet
       logger.trace("End   doGet");
       }
 
+   /**
+    * 
+    * @see HttpServlet#doPut(HttpServletRequest  request,
+    *                        HttpServletResponse response)
+    */
+
    @Override
-   public void doPut(HttpServletRequest  request,
-                     HttpServletResponse response)
+   protected void doPut(HttpServletRequest  request,
+                        HttpServletResponse response)
       throws ServletException,
              IOException
       {
@@ -160,6 +256,15 @@ public class Servlet
       logger.trace("End   getLeveledLocalities");
       }
 
+   private void getMeasurementTypes(final HttpServletRequest  request,
+                                    final HttpServletResponse response)
+      throws ServletException,
+             IOException
+      {
+      logger.trace("Begin getMeasurementTypes");
+      logger.trace("End   getMeasurementTypes");
+      }
+
    private void getMeasurements(final HttpServletRequest  request,
                                 final HttpServletResponse response)
       throws ServletException,
@@ -172,7 +277,8 @@ public class Servlet
       final int                   count           = Integer.parseInt(parameterMap.get(countParameter)[0]);
       final Calendar              endDateTime     = new GregorianCalendar(utcTimeZone);
       final Long                  localityId      = Long.parseLong(parameterMap.get(localityIdParameter)[0]);
-      final String                measurementType = parameterMap.get(measureParameter)[0];
+      final String                measure         = parameterMap.get(measureParameter)[0]; // deprecated
+      final String                measurementType = measure == null ? parameterMap.get(measurementTypeParameter)[0] : measure;
 
       try
          {
@@ -212,61 +318,8 @@ public class Servlet
 
             final Date        measurementDateTime = beginDateTime.getTime();
             final Measurement measurement         = measurementMap.get(measurementDateTime);
-         // final Object      measurementValue    = measurement == null ? null : measurement.getValue();
-
-            /*
-            if (measurement == null)
-               {
-               measurementValue = null;
-               }
-            else
-               {
-               measurementValue = measurement.getValue();
-            */
-            // switch (measurementType /* measure */)
-               /*
-                  {
-                  case carbonDioxideParameter:
-                     {
-                     measurementValue = measurement.getCarbonDioxide();
-                     break;
-                     }
-                  case humidityParameter:
-                     {
-                     measurementValue = measurement.getHumidity();
-                     break;
-                     }
-                  case lightParameter:
-                     {
-                     measurementValue = measurement.getLight();
-                     break;
-                     }
-                  case occupancyParameter:
-                     {
-                     measurementValue = measurement.getOccupancy();
-                     break;
-                     }
-                  case temperatureParameter:
-                     {
-                     measurementValue = measurement.getTemperature();
-                     break;
-                     }
-                  case wattsParameter:
-                     {
-                     measurementValue = measurement.getWatts();
-                     break;
-                     }
-                  default:
-                     {
-                     measurementValue = null;
-                     }
-                  }
-               }
-               */
-         // if (measurementValue != null)
             if (measurement != null)
                {
-            // stringBuffer.append(measurementValue.toString());
                stringBuffer.append(measurement.getValue());
                }
             stringBuffer.append(delimiter);
@@ -283,25 +336,16 @@ public class Servlet
              IOException
       {
       logger.trace("Begin putMeasurement");
-
       try
          {
-      //       Double                carbonDioxide       = null;
-      //       Double                humidity            = null;
-      //       Double                light               = null;
          final Map<String, String[]> parameterMap        = request.getParameterMap();
          final Long                  localityId          = Long.parseLong(parameterMap.get(localityIdParameter)[0]);
          final Date                  measurementDateTime = simpleDateFormat.parse(parameterMap.get(measurementDateTimeParameter)[0]);
-      //       Integer               occupancy           = null;
-      //       Double                temperature         = null;
-      //       Double                watts               = null;
 
-      // for (String parameter:  parameterMap.keySet())
          for (Map.Entry<String, String[]> entry:  parameterMap.entrySet())
             {
             final String key = entry.getKey();
 
-         // switch (parameter)
             switch (key)
                {
                case localityIdParameter:
@@ -314,72 +358,11 @@ public class Servlet
                   {
                   measurementManager.putMeasurement(localityId,
                                                     measurementDateTime,
-                                                 // parameter,
-                                                 // Double.valueOf(parameterMap.get(parameter)[0]));
                                                     key,
                                                     Double.valueOf(entry.getValue()[0]));
                   }
                }
             }
-         /*
-         try
-            {
-            carbonDioxide = new Double(parameterMap.get(carbonDioxideParameter)[0]);
-            }
-         catch (final Exception exception)
-            {
-            }
-         try
-            {
-            humidity = new Double(parameterMap.get(humidityParameter)[0]);
-            }
-         catch (final Exception exception)
-            {
-            }
-         try
-            {
-            light = new Double(parameterMap.get(lightParameter)[0]);
-            }
-         catch (final Exception exception)
-            {
-            }
-         try
-            {
-            occupancy = new Integer(parameterMap.get(localOccupancyParameter)[0]);
-            }
-         catch (final Exception exception)
-            {
-            try
-               {
-               occupancy = new Integer(parameterMap.get(occupancyParameter)[0]);
-               }
-            catch (final Exception nestedException)
-               {
-               }
-            }
-         try
-            {
-            temperature = new Double(parameterMap.get(temperatureParameter)[0]);
-            }
-         catch (final Exception exception)
-            {
-            }
-         try
-            {
-            watts = new Double(parameterMap.get(wattsParameter)[0]);
-            }
-         catch (final Exception exception)
-            {
-            }
-         measurementManager.putMeasurement(carbonDioxide,
-                                           humidity,
-                                           light,
-                                           localityId,
-                                           measurementDateTime,
-                                           occupancy,
-                                           temperature,
-                                           watts);
-                                           */
          }
       catch (final Exception exception)
          {
