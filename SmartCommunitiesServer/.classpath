@@ -10,5 +10,5 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="/opt/eclipse-juno/plugins/javax.servlet_3.0.0.v201112011016.jar"/>
-	<classpathentry kind="output" path="WebContent/classes"/>
+	<classpathentry kind="output" path="WebContent/WEB-INF/classes"/>
 </classpath>
