@@ -5,8 +5,8 @@ import edu.cmu.smartcommunities.database.controller.LocalityManager.LeveledLocal
 import edu.cmu.smartcommunities.database.controller.MeasurementManager;
 import edu.cmu.smartcommunities.database.model.Locality;
 import edu.cmu.smartcommunities.database.model.Measurement;
+import edu.cmu.smartcommunities.database.model.MeasurementType;
 import java.io.IOException;
-import java.io.Writer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -23,29 +23,32 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Servlet implementation class Servlet
+ * This servlet is the gateway for putting resources (data) into and getting resources from the system's database via HTTP PUT and GET
+ * requests.
  */
 
 @WebServlet(value="/servlet", loadOnStartup=1)
 public class Servlet
    extends HttpServlet
    {
-   private static final String               applicationText              = "application/text";
-   private static final String               countParameter               = "count";
-   private static final String               leveledLocalitiesParameter   = "leveledLocalities";
-   private static final String               localityIdParameter          = "localityId";
-   private        final LocalityManager      localityManager              = new LocalityManager();
-   private        final Logger               logger                       = LoggerFactory.getLogger(Servlet.class);
-   private static final String               measureParameter             = "measure";
-   private static final String               measurementDateTimeParameter = "measurementDateTime";
-   private        final MeasurementManager   measurementManager           = new MeasurementManager();
-   private static final String               measurementTypeParameter     = "measurementType";
-   private static final String               measurementTypesParameter    = "measurementTypes";
-   private static final String               measurementsParameter        = "measurements";
-   private static final String               resourceParameter            = "resource";
-   private static final long                 serialVersionUID             = -4438267678361119983L;
-   private        final DateFormat           simpleDateFormat             = new SimpleDateFormat("yyyyMMddHHmm");
-   private        final TimeZone             utcTimeZone                  = TimeZone.getTimeZone("UTC");
+   private static final String             applicationText              = "application/text";
+   private static final String             countParameter               = "count";
+   private        final DateFormat         dateFormat                   = new SimpleDateFormat("yyyyMMddHHmm");
+   private static final String             leveledLocalitiesParameter   = "leveledLocalities";
+   private static final String             localityIdParameter          = "localityId";
+   private        final LocalityManager    localityManager              = new LocalityManager();
+   private        final Logger             logger                       = LoggerFactory.getLogger(Servlet.class);
+   @Deprecated
+   private static final String             measureParameter             = "measure";
+   private static final String             measurementDateTimeParameter = "measurementDateTime";
+   private        final MeasurementManager measurementManager           = new MeasurementManager();
+   private static final String             measurementParameter         = "measurement";
+   private static final String             measurementTypeParameter     = "measurementType";
+   private static final String             measurementTypesParameter    = "measurementTypes";
+   private static final String             measurementsParameter        = "measurements";
+   private static final String             resourceParameter            = "resource";
+   private static final long               serialVersionUID             = -8272585844088908248L;
+   private        final TimeZone           utcTimeZone                  = TimeZone.getTimeZone("UTC");
 
    /**
     * @see HttpServlet#HttpServlet()
@@ -54,117 +57,129 @@ public class Servlet
    public Servlet()
       {
       super();
-      simpleDateFormat.setTimeZone(utcTimeZone);
+      dateFormat.setTimeZone(utcTimeZone);
       }
 
    /**
-    * Requests a representation of the specified resource.  The HTTP GET request should be in the following form:
+    * <p>Requests a representation of the specified resource.  The HTTP GET request should be in the following form:</p>
     * 
-    * <code>http://<em>hostname[:port]</em>/SmartCommunitiesServer/servlet?<em>parameters</em>
+    * <p><code>http://<em>hostname[:port]</em>/SmartCommunitiesServer/servlet?<em>parameters</em></code></p>
     * 
-    * where:
-    * 
-    * <dl>
-    *    <dt>hostname</dt>
-    *    <dd>the name of the server hosting the servlet.</dd>
-    *    <dt>port</dt>
-    *    <dd>the port number to which the server is listening.</dd>
-    *    <dt>parameters</dt>
-    *    <dd>an ampersand-concatenated list of the key-value pairs.</dd>
-    * </dl>
-    * 
-    * Only one key value (<code>resource</code>) is required, although other key-value pairs are required or accepted,
+    * <p>where:
+    *    <dl>
+    *       <dt>hostname</dt>
+    *       <dd>the name of the server hosting the servlet.</dd>
+    *       <dt>port</dt>
+    *       <dd>the port number to which the server is listening.</dd>
+    *       <dt>parameters</dt>
+    *       <dd>an ampersand-concatenated list of the key-value pairs.</dd>
+    *    </dl>
+    * </p>
+    *
+    * <h5>Resources</h5>
+    *
+    * <p>Only one key value (<code>resource</code>) is required, although other key-value pairs are required or accepted,
     * depending on the value of <code>resource</code>.  The accepted values for <code>resource</code> are:
+    *    <dl>
+    *       <dt>leveledLocalities</dt>
+    *       <dd>returns a list of localities known to the system.</dd>
+    *       <dt>measurementTypes</dt>
+    *       <dd>returns a list of the measurement types known to the system.</dd>
+    *       <dt>measurements</dt>
+    *       <dd>returns a list of measurements matching the provided query criteria.</dd>
+    *    </dl>
+    * </p>
+    *
+    * <h6>Leveled Localities</h6>
     * 
-    * <dl>
-    *    <dt>leveledLocalities</dt>
-    *    <dd>returns a list of localities known to the system.</dd>
-    *    <dt>measurementTypes</dt>
-    *    <dd>returns a list of the measurement types known to the system.</dd>
-    *    <dt>measurements</dt>
-    *    <dd>returns a list of measurements matching the provided query criteria.</dd>
-    * </dl>
-    * 
-    * <p><strong>Leveled Localities</strong></p>
-    * 
-    * The system maintains localities in a single-rooted tree structure.  Every locality (other than the root locality) is
+    * <p>The system maintains localities in a single-rooted tree structure.  Every locality (other than the root locality) is
     * a child of another locality in the system.  The response to a request for leveled localities is a newline-delimited
     * list of locality entities.  Each locality has a <code>level</code> indicating its generational depth in the tree.  A
     * non-root locality with level <em>n</em> is a child of the most closely preceding locality with a level <em>n-1</em>.
     * Each locality entity is a comma-delimited list of attributes.  The attributes are:
+    *    <dl>
+    *       <dt>level</dt>
+    *       <dd>0 for the root locality, 1 for the root locality's children, 2 for the root locality's grandchildren, etc.</dd>
+    *       <dt>localityId</dt>
+    *       <dd>the unique identifier for the locality.</dd>
+    *       <dt>name</dt>
+    *       <dd>the name of the locality.</dd>
+    *    </dl>
+    * </p>
     * 
-    * <dl>
-    *    <dt>level</dt>
-    *    <dd>0 for the root locality, 1 for the root locality's children, 2 for the root locality's grandchildren, etc.</dd>
-    *    <dt>localityId</dt>
-    *    <dd>the unique identifier for the locality.</dd>
-    *    <dt>name</dt>
-    *    <dd>the name of the locality.</dd>
-    * </dl>
-    * 
-    * <p>Example request and response:</p>
+    * <p>For example, to get a list of the leveled localities issue the following request:</p>
     *
-    * <p><strong>Measurement Types</strong></p>
+    * <p><code>http://<em>hostname[:port]</em>/SmartCommunities/servlet?resource=leveledLocalities</code></p>
+    * 
+    * <p>A fragment of the response may look something like:
+    *    <pre>
+    *       0,1,NASA Ames Research Center
+    *       1,71,Building 19
+    *       2,72,Corridor 103x
+    *       2,73,Corridor 105x
+    *    </pre>
+    * </p>
     *
-    * The system maintains a list of the allowed measurement types.  This request provides a newline-delimited list of the
-    * measurement types.
+    * <h6>Measurement Types</h6>
+    *
+    * <p>The system maintains a list of the recognized measurement types.  The response to a request for measurement types is a
+    * newline-delimited list of the names of the measurement types.</p>
+    *
+    * <p>For example, to get a list of measurement types issue the following request:</p>
     * 
-    * <p><strong>Measurements</strong></p>
+    * <p><code>http://<em>hostname[:port]</em>/SmartCommunities/servlet?resource=measurementTypes</code></p>
     * 
-    * Additional key-value pairs must be provided to retrieve measurements from the system.
+    * <p>A fragment of the response may look something like:
+    *    <pre>
+    *       carbonDioxide
+    *       humidity
+    *       light
+    *       occupancy
+    *    </pre>
+    * </p>
     * 
-    * <table>
-    *    <thead>
-    *       <tr>
-    *          <th>Parameter name</th>
-    *          <th>Parameter value</th>
-    *          <th>Description</th>
-    *          <th>Optionality</th>
-    *       </tr>
-    *    </thead>
-    *    <tbody>
-    *       <tr>
-    *          <td><code>count</code></td>
-    *          <td><em>integer</em></td>
-    *          <td>The maximum number of measurements to return.</td>
-    *          <td>Required</td>
-    *       </tr>
-    *       <tr>
-    *          <td><code>localityId</code></td>
-    *          <td><em>integer</em></td>
-    *          <td>The unique identifier for the locality to which the measurements apply.</td>
-    *          <td>Required</td>
-    *       </tr>
-    *       <tr>
-    *          <td><code>measurementType</code></td>
-    *          <td><em>string</em></td>
-    *          <td>The type of measurement being requested.</td>
-    *          <td>Required</td>
-    *       </tr>
-    *       <tr>
-    *          <td><code>measurementDateTime</code></td>
-    *          <td><em>yyyymmddhhmm</em></td>
-    *          <td>The date/time, represented in UTC, of the last measurement of interest.</td>
-    *          <td>Optional</td>
-    *       </tr>
-    *    </tbody>
-    * </table>
+    * <h6>Measurements</h6>
+    *
+    * <p>The system maintains the measurements gathered by the deployed sensors.  A request for measurements must include criteria
+    * for defining a subset of the system's measurements.  The criteria include the following:
+    *    <dl>
+    *       <dt>count</dt>
+    *       <dd>An integer representing the maximum number of measurements to return.  (Required)</dd>
+    *       <dt>localityId</dt>
+    *       <dd>An integer identifying the locality to which the measurements apply.  (Required)</dd>
+    *       <dt>measurementType</dt>
+    *       <dd>A string representing the name of the measurement type being requested.  (Required)</dd>
+    *       <dt>measurementDateTime</dt>
+    *       <dd>The date and time, represented in UTC, of the last desired measurement.  (Optional, formatted as YYYYMMDDHHMM, defaults to current time)</dd>
+    *    </dl>
+    * </p>
+    *
+    * <p>The measurement values are returned in a comma-delimited string.  Consecutive commas indicate the absence of a measurement
+    * for the corresponding time period.</p>
     * 
+    * <p>For example, to get a list of measurements issue the following request:</p>
+    * 
+    * <p><code>http://<em>hostname[:port]</em>/SmartCommunities/servlet?resource=measurements&localityId=6&count=10&measurementType=occupancy</code></p>
+    *
+    * <p>The response may look something like:
+    *    <pre>
+    *       1.0,1.0,1.0,1.0,2.0,2.0,2.0,,,1.0
+    *    </pre>
+    * </p>
+    *
     * @see HttpServlet#doGet(HttpServletRequest  request,
     *                        HttpServletResponse response)
     */
 
-   protected void doGet(HttpServletRequest  request,
-                        HttpServletResponse response)
+   protected void doGet(final HttpServletRequest  request,
+                        final HttpServletResponse response)
       throws ServletException,
              IOException
       {
       logger.trace("Begin doGet");
       logger.debug("URL:  " + request.getRequestURL() + "?" + request.getQueryString());
 
-      final String resource = request.getParameter(resourceParameter);
-
-      switch (resource)
+      switch (request.getParameter(resourceParameter))
          {
          case leveledLocalitiesParameter:
             {
@@ -192,10 +207,10 @@ public class Servlet
 
             logger.warn("Parameters specified:  " + parameterMap.size());
             logger.warn("Begin dumping out parameters");
-            for (Map.Entry<String, String[]> entry:  parameterMap.entrySet())
+            for (final Map.Entry<String, String[]> entry:  parameterMap.entrySet())
                {
                logger.warn("Name:  >" + entry.getKey() + "<");
-               for (String value:  entry.getValue())
+               for (final String value:  entry.getValue())
                   {
                   logger.warn("Value:  >" + value + "<");
                   }
@@ -208,21 +223,71 @@ public class Servlet
       }
 
    /**
+    * <p>Uploads a representation of the specified resource.  The HTTP PUT request should be in the following form:</p>
+    * 
+    * <p><code>http://<em>hostname[:port]</em>/SmartCommunitiesServer/servlet?<em>parameters</em></code></p>
+    * 
+    * <p>where:
+    *    <dl>
+    *       <dt>hostname</dt>
+    *       <dd>the name of the server hosting the servlet.</dd>
+    *       <dt>port</dt>
+    *       <dd>the port number to which the server is listening.</dd>
+    *       <dt>parameters</dt>
+    *       <dd>an ampersand-concatenated list of the key-value pairs.</dd>
+    *    </dl>
+    * </p>
+    *
+    * <h5>Resources</h5>
+    *
+    * <p>Only one key value (<code>resource</code>) is required, although other key-value pairs are required or accepted,
+    * depending on the value of <code>resource</code>.  Currently the one accepted value for <code>resource</code> is:
+    *    <dl>
+    *       <dt>measurements</dt>
+    *       <dd>A set of measurements to be added to the system.</dd>
+    *    </dl>
+    * </p>
+    * 
+    * <h6>Measurements</h6>
+    *
+    * <p>The additional parameters that are recognized when putting measurements into the system are:
+    *    <dl>
+    *       <dt>measurementDateTime</dt>
+    *       <dd>The date and time, represented in UTC, representing when the measurement was taken.  (Required, formatted as YYYYMMDDHHMM)</dd>
+    *       <dt><em>sensorId</em></dt>
+    *       <dd>The identifiers for the sensor providing the measurement, which must be representable as a floating point number</dd>
+    *    </dl>
+    * </p>
+    * 
+    * <p>For example, assuming that the sensor with sensorId of 5 measures temperature and the sensor with sensorId 6 measures humidity and that
+    * measurements of 22C with 50% relative humidity were taken at noon (PDT) on June 1, 2012, the following request should be submitted:</p>
+    * 
+    * <p><code>http://<em>hostname[:port]</em>/SmartCommunities/servlet?resource=measurements&measurementDateTime=201206011900&5=22&6=0.5</code></p>
+    *
+    * <p><strong>Note:</strong> Remember to represent the time in UTC.</p>
     * 
     * @see HttpServlet#doPut(HttpServletRequest  request,
     *                        HttpServletResponse response)
     */
 
    @Override
-   protected void doPut(HttpServletRequest  request,
-                        HttpServletResponse response)
+   protected void doPut(final HttpServletRequest  request,
+                        final HttpServletResponse response)
       throws ServletException,
              IOException
       {
       logger.trace("Begin doPut");
       logger.debug("URL:  " + request.getRequestURL() + "?" + request.getQueryString());
-      putMeasurement(request,
-                     response);
+
+      switch (request.getParameter(resourceParameter))
+         {
+         case measurementParameter:
+         default:
+            {
+            putMeasurement(request,
+                           response);
+            }
+         }
       logger.trace("End   doPut");
       }
 
@@ -233,25 +298,24 @@ public class Servlet
       {
       logger.trace("Begin getLocalities");
 
-      final char   comma   = ',';
-      final char   newline = '\n';
-      final Writer writer  = response.getWriter();
+      final char         fieldDelimiter = ',';
+      final char         lineDelimiter  = '\n';
+      final StringBuffer stringBuffer   = new StringBuffer();
 
-      response.setContentType(applicationText);
-      for (LeveledLocality leveledLocality:  localityManager.getLeveledLocalities())
+      for (final LeveledLocality leveledLocality:  localityManager.getLeveledLocalities())
          {
-         final int          level        = leveledLocality.level;
-         final Locality     locality     = leveledLocality.locality;
-         final StringBuffer stringBuffer = new StringBuffer();
-
+         final int      level    = leveledLocality.level;
+         final Locality locality = leveledLocality.locality;
+ 
          stringBuffer.append(level)
-                     .append(comma)
+                     .append(fieldDelimiter)
                      .append(locality.getId())
-                     .append(comma)
+                     .append(fieldDelimiter)
                      .append(locality.getName())
-                     .append(newline);
-         writer.write(stringBuffer.toString()); 
+                     .append(lineDelimiter);
          }
+      response.setContentType(applicationText);
+      response.getWriter().write(stringBuffer.toString()); 
       response.flushBuffer();
       logger.trace("End   getLeveledLocalities");
       }
@@ -262,6 +326,18 @@ public class Servlet
              IOException
       {
       logger.trace("Begin getMeasurementTypes");
+
+      final char         lineDelimiter = '\n';
+      final StringBuffer stringBuffer  = new StringBuffer();
+
+      for (final MeasurementType measurementType:  new MeasurementManager().getMeasurementTypeList())
+         {
+         stringBuffer.append(measurementType.getName())
+                     .append(lineDelimiter);
+         }
+      response.setContentType(applicationText);
+      response.getWriter().write(stringBuffer.toString());
+      response.flushBuffer();
       logger.trace("End   getMeasurementTypes");
       }
 
@@ -277,12 +353,12 @@ public class Servlet
       final int                   count           = Integer.parseInt(parameterMap.get(countParameter)[0]);
       final Calendar              endDateTime     = new GregorianCalendar(utcTimeZone);
       final Long                  localityId      = Long.parseLong(parameterMap.get(localityIdParameter)[0]);
-      final String                measure         = parameterMap.get(measureParameter)[0]; // deprecated
-      final String                measurementType = measure == null ? parameterMap.get(measurementTypeParameter)[0] : measure;
+      final String[]              measure         = parameterMap.get(measureParameter);
+      final String                measurementType = measure == null ? parameterMap.get(measurementTypeParameter)[0] : measure[0];
 
       try
          {
-         endDateTime.setTime(simpleDateFormat.parse(parameterMap.get(measurementDateTimeParameter)[0]));
+         endDateTime.setTime(dateFormat.parse(parameterMap.get(measurementDateTimeParameter)[0]));
          }
       catch (final Exception exception)
          {
@@ -293,20 +369,18 @@ public class Servlet
       beginDateTime = (Calendar) endDateTime.clone();
       beginDateTime.add(Calendar.MINUTE, -count);
 
-      final char                   delimiter      = ',';
-      final StringBuffer           stringBuffer   = new StringBuffer();
-      final Writer                 writer         = response.getWriter();
+      final char                   fieldDelimiter = ',';
       final Map<Date, Measurement> measurementMap = measurementManager.getMeasurementMap(beginDateTime.getTime(),
                                                                                          endDateTime.getTime(),
                                                                                          localityId,
                                                                                          measurementType);
+      final StringBuffer           stringBuffer   = new StringBuffer();
 
-      response.setContentType(applicationText);
       if (measurementMap.size() == 0)
          {
          for (int i = 0; i < count; i++)
             {
-            stringBuffer.append(delimiter);
+            stringBuffer.append(fieldDelimiter);
             }
          }
       else
@@ -316,16 +390,17 @@ public class Servlet
             {
             beginDateTime.add(Calendar.MINUTE, 1);
 
-            final Date        measurementDateTime = beginDateTime.getTime();
-            final Measurement measurement         = measurementMap.get(measurementDateTime);
+            final Measurement measurement = measurementMap.get(beginDateTime.getTime());
+
             if (measurement != null)
                {
                stringBuffer.append(measurement.getValue());
                }
-            stringBuffer.append(delimiter);
+            stringBuffer.append(fieldDelimiter);
             }
          }
-      writer.write(stringBuffer.deleteCharAt(stringBuffer.length() - 1).toString());
+      response.setContentType(applicationText);
+      response.getWriter().write(stringBuffer.deleteCharAt(stringBuffer.length() - 1).toString());
       response.flushBuffer();
       logger.trace("End   getMeasurements");
       }
@@ -339,26 +414,24 @@ public class Servlet
       try
          {
          final Map<String, String[]> parameterMap        = request.getParameterMap();
-         final Long                  localityId          = Long.parseLong(parameterMap.get(localityIdParameter)[0]);
-         final Date                  measurementDateTime = simpleDateFormat.parse(parameterMap.get(measurementDateTimeParameter)[0]);
+         final Date                  measurementDateTime = dateFormat.parse(parameterMap.get(measurementDateTimeParameter)[0]);
 
-         for (Map.Entry<String, String[]> entry:  parameterMap.entrySet())
+         for (final Map.Entry<String, String[]> entry:  parameterMap.entrySet())
             {
             final String key = entry.getKey();
 
             switch (key)
                {
-               case localityIdParameter:
+               case resourceParameter:
                case measurementDateTimeParameter:
                   {
-                  // These have been processed before.
+                  // These has been processed already.
                   break;
                   }
                default:
                   {
-                  measurementManager.putMeasurement(localityId,
-                                                    measurementDateTime,
-                                                    key,
+                  measurementManager.putMeasurement(measurementDateTime,
+                                                    Long.valueOf(key),  // This is the sensorId
                                                     Double.valueOf(entry.getValue()[0]));
                   }
                }
