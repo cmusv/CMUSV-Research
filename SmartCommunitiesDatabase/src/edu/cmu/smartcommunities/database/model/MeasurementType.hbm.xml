@@ -10,9 +10,9 @@
          <column name="cumulative" not-null="true" sql-type="char"/>
       </property>
       <property name="name" not-null="true" type="java.lang.String"/>
-      <set name="measurementSet" cascade="all-delete-orphan" inverse="true">
+      <set name="sensorSet" cascade="all-delete-orphan" inverse="true">
          <key column="measurementTypeId"/>
-         <one-to-many class="Measurement"/>
+         <one-to-many class="Sensor"/>
       </set>
    </class>
 </hibernate-mapping>

@@ -99,9 +99,11 @@
 
    <target name="compileHibernateMappingFiles" depends="copyHibernateMappingFiles, copyPropertiesFiles">
       <taskdef name="hibernatetool" classname="org.hibernate.tool.ant.HibernateToolTask" classpathref="hibernate-tools.classpath"/>
-   	<!--
-   	<taskdef name="schemaexport"  classname="org.hibernate.tool.hbm2ddl.SchemaExportTask" classpathref="hibernate-tools.classpath"/>
-   	-->
+        <!-- -->
+        <!--
+        <taskdef name="schemaexport"  classname="org.hibernate.tool.hbm2ddl.SchemaExportTask" classpathref="hibernate-tools.classpath"/>
+        -->
+        <!-- -->
       <!--
          Ideally, the Hibernate Tools would produce granular results based on
          which mapping files have been updated and:
@@ -138,16 +140,21 @@
             <path refid="domain.classpath"/>
          </classpath>
          <configuration configurationfile="${domain.classes.directory}/hibernate.cfg.xml"/>
-         <hbm2ddl console="false" drop="true" export="false" format="true" outputfilename="SmartCommunities.sql"/>
+         <hbm2ddl console="true" drop="true" export="false" format="true" outputfilename="SmartCommunities.sql"/>
          <hbm2java jdk5="true"/>
       </hibernatetool>
-   	<!--
-   	<schemaexport properties="hibernate.properties" quiet="no" text="no" drop="no" delimiter=";" output="SmartCommunities.sql">
+      <!-- -->
+         <!--
+         <schemaexport properties="hibernate.properties" quiet="no" text="no" drop="no" delimiter=";" output="SmartCommunities.sql">
+         -->
+         <!--
+         <schemaexport config="src/hibernate.cfg.xml" delimiter=";" drop="no" output="SmartCommunities.sql" quiet="no" text="no">
          <fileset dir="src">
              <include name="**/*.hbm.xml"/>
          </fileset>
       </schemaexport>
       -->
+      <!-- -->
       <copy todir="${temporary.directory}/$_DatabaseRestructure_$">
          <fileset dir="${temporary.directory}">
             <include name="SmartCommunities.sql"/>
@@ -203,7 +210,7 @@
    </target>
 
    <target name="copyJavaServerPages" depends="createBuildDirectory">
-   	<echo message="Does nothing"/>
+      <echo message="Does nothing"/>
       <!--
       <copy todir="${domain.build.directory}">
          <fileset dir="${domain.web.directory}/..">

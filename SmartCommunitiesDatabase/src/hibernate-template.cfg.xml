@@ -15,7 +15,9 @@
       <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
       <mapping resource="edu/cmu/smartcommunities/database/model/Locality.hbm.xml"/>
       <mapping resource="edu/cmu/smartcommunities/database/model/Measurement.hbm.xml"/>
-      <mapping resource="edu/cmu/smartcommunities/database/model/MeasurementIntent.hbm.xml"/>
       <mapping resource="edu/cmu/smartcommunities/database/model/MeasurementType.hbm.xml"/>
+      <mapping resource="edu/cmu/smartcommunities/database/model/Sensor.hbm.xml"/>
+      <mapping resource="edu/cmu/smartcommunities/database/model/SensorPlatform.hbm.xml"/>
+      <mapping resource="edu/cmu/smartcommunities/database/model/SensorPlatformLocation.hbm.xml"/>
    </session-factory>
 </hibernate-configuration>

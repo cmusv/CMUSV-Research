@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping package="edu.cmu.smartcommunities.database.model">
+   <class name="Sensor" table="Sensor">
+      <id name="id" column="sensorId" type="long">
+         <generator class="native"/>
+      </id>
+      <version name="version" type="int"/>
+      <set name="measurementSet" cascade="all-delete-orphan" inverse="true" order-by="measurementDateTime">
+         <key column="sensorId"/>
+         <one-to-many class="Measurement"/>
+      </set>
+      <many-to-one class="MeasurementType" column="measurementTypeId" name="measurementType" update="false"/>
+      <many-to-one class="SensorPlatform" column="sensorPlatformId" name="sensorPlatform" update="false"/>
+   </class>
+</hibernate-mapping>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping package="edu.cmu.smartcommunities.database.model">
+   <class name="SensorPlatform" table="SensorPlatform">
+      <id column="sensorPlatformId" name="id" type="long">
+         <generator class="native"/>
+      </id>
+      <version generated="never" name="version" type="int"/>
+      <property generated="never" lazy="false" length="12" name="macAddress" type="java.lang.String"/>
+      <set cascade="all-delete-orphan" inverse="true" name="sensorSet" sort="unsorted">
+         <key column="sensorPlatformId"/>
+         <one-to-many class="Sensor"/>
+      </set>
+      <set cascade="all-delete-orphan" inverse="true" name="sensorPlatformLocationSet">
+         <key column="sensorPlatformId"/>
+         <one-to-many class="SensorPlatformLocation"/>
+      </set>
+   </class>
+</hibernate-mapping>

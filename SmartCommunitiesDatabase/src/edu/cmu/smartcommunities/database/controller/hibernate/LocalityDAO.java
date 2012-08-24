@@ -230,6 +230,8 @@ public class LocalityDAO
       @Override
       public void execute()
          {
+         throw new IllegalStateException("Not currently supported.");
+         /*
          final Set<Measurement> measurmentSet = locality.getMeasurementSet();
 
          for (Measurement measurement:  measurmentSet)
@@ -246,6 +248,7 @@ public class LocalityDAO
             measurement.setMeasurementDateTime(dateTime);
             measurmentSet.add(measurement);
             }
+         */
          }
       }
 

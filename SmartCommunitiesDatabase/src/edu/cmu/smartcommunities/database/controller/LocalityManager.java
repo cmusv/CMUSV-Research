@@ -5,7 +5,7 @@ import edu.cmu.smartcommunities.database.model.Locality;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Vector;
-import org.hibernate.Query;
+import org.hibernate.criterion.Restrictions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +58,8 @@ public class LocalityManager
    private class GetLeveledLocalitiesBusinessTransaction
       implements BusinessTransactionInterface
       {
-      private final List<LeveledLocality> leveledLocalityList = new Vector<>();
+      private        final List<LeveledLocality> leveledLocalityList           = new Vector<>();
+      private static final String                parentLocalityAssociationName = "parentLocality";
 
       private void appendToList(final int      level,
                                 final Locality locality)
@@ -66,7 +67,7 @@ public class LocalityManager
          logger.trace("Begin GetLeveledLocalitiesBusinessTransaction.appendToList");
          leveledLocalityList.add(new LeveledLocality(level,
                                                      locality));
-         for (Locality childLocality:  locality.getChildLocalitySet())
+         for (final Locality childLocality:  locality.getChildLocalitySet())
             {
             appendToList(level + 1,
                          childLocality);
@@ -79,11 +80,16 @@ public class LocalityManager
          {
          logger.trace("Begin GetLeveledLocalitiesBusinessTransaction.execute");
 
-         final Query          localityQuery = HibernateUtil.getSessionFactory().getCurrentSession().createQuery("from Locality as locality where locality.parentLocality is null");
+      // final Query          localityQuery = HibernateUtil.getSessionFactory().getCurrentSession().createQuery("from Locality as locality where locality.parentLocality is null");
          @SuppressWarnings("unchecked")
-         final List<Locality> localityList  = localityQuery.list();
+      // final List<Locality> localityList  = localityQuery.list();
+         final List<Locality> localityList = HibernateUtil.getSessionFactory()
+                                                          .getCurrentSession()
+                                                          .createCriteria(Locality.class)
+                                                          .add(Restrictions.isNull(parentLocalityAssociationName))
+                                                          .list();
 
-         for (Locality locality:  localityList)
+         for (final Locality locality:  localityList)
             {
             appendToList(0,
                          locality);

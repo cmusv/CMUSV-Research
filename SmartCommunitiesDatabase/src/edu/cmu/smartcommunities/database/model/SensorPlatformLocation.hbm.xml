@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping package="edu.cmu.smartcommunities.database.model">
+   <class name="SensorPlatformLocation" table="SensorPlatformLocation">
+      <id name="id" column="sensorPlatformLocationId" type="long">
+         <generator class="native"/>
+      </id>
+      <version name="version" type="int"/>
+      <property name="beginDateTime" not-null="true" type="java.util.Date"/>
+      <property name="endDateTime" not-null="false" type="java.util.Date"/>
+      <many-to-one class="SensorPlatform" column="sensorPlatformId" name="sensorPlatform" not-null="true" update="false"/>
+      <joined-subclass name="AbsoluteLocation" table="AbsoluteLocation">
+         <key column="sensorPlatformLocationId"/>
+         <property name="altitude" not-null="true" type="double"/>
+         <property name="latitude" not-null="true" type="double"/>
+         <property name="longitude" not-null="true" type="double"/>
+      </joined-subclass>
+      <joined-subclass name="SymbolicLocation" table="SymbolicLocation">
+         <key column="sensorPlatformLocationId"/>
+         <many-to-one class="Locality" column="localityId" name="locality" not-null="true" update="false"/>
+      </joined-subclass>
+   </class>
+</hibernate-mapping>

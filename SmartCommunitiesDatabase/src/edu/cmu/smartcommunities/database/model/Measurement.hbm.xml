@@ -6,9 +6,8 @@
          <generator class="native"/>
       </id>
       <version name="version" type="int"/>
-      <many-to-one class="Locality" column="localityId" name="locality" not-null="true" update="false"/>
       <property name="measurementDateTime" index="measurementDateTimeIndex" not-null="true" type="java.util.Date"/>
-      <many-to-one class="MeasurementType" column="measurementTypeId" name="measurementType" not-null="true" update="false"/>
+      <many-to-one class="Sensor" column="sensorId" name="sensor" not-null="true" update="false"/>
       <property name="value" not-null="true" type="double"/>
    </class>
 </hibernate-mapping>

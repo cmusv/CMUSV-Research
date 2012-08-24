@@ -4,14 +4,13 @@ import edu.cmu.smartcommunities.database.controller.hibernate.HibernateUtil;
 import edu.cmu.smartcommunities.database.model.Locality;
 import edu.cmu.smartcommunities.database.model.Measurement;
 import edu.cmu.smartcommunities.database.model.MeasurementType;
+import edu.cmu.smartcommunities.database.model.Sensor;
 import java.io.Serializable;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.Vector;
-import org.hibernate.Criteria;
-import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
@@ -19,50 +18,97 @@ import org.hibernate.criterion.Restrictions;
 public class MeasurementManager
    implements Serializable
    {
-   private static final String measurementDateTimeColumn = "measurementDateTime";
-   private static final long   serialVersionUID          = -6876169729675513328L;
+   private static final String measurementDateTimeAttributeName = "measurementDateTime";
+   private static final String nameAttributeName                = "name";
+   private static final String sensorEntityName                 = "sensor";
+   private static final long   serialVersionUID                 = -6876169729675513328L;
 
    public Map<Date, Measurement> getMeasurementMap(final Date   beginDateTime,
                                                    final Date   endDateTime,
                                                    final Long   localityId,
                                                    final String name)
       {
-      final GetMeasurementsBusinessTransaction businessTransaction = new GetMeasurementsBusinessTransaction(beginDateTime,
-                                                                                                            endDateTime,
-                                                                                                            localityId,
-                                                                                                            name);
+      final GetMeasurementMapBusinessTransaction businessTransaction = new GetMeasurementMapBusinessTransaction(beginDateTime,
+                                                                                                                endDateTime,
+                                                                                                                localityId,
+                                                                                                                name);
 
       HibernateUtil.executeBusinessTransaction(businessTransaction);
       return businessTransaction.measurementMap;
       }
 
-   public Measurement putMeasurement(final long   localityId,
-                                     final Date   measurementDateTime,
-                                     final String name,
+   public List<MeasurementType> getMeasurementTypeList()
+      {
+      final GetMeasurementTypeListBusinessTransaction businessTransaction = new GetMeasurementTypeListBusinessTransaction();
+
+      HibernateUtil.executeBusinessTransaction(businessTransaction);
+      return businessTransaction.measurementTypeList;
+      }
+
+   public Measurement putMeasurement(final Date   measurementDateTime,
+                                     final long   sensorId,
                                      final double value)
       {
-      final PutMeasurementBusinessTransaction businessTransaction = new PutMeasurementBusinessTransaction(localityId,
-                                                                                                          measurementDateTime,
-                                                                                                          name,
+      final PutMeasurementBusinessTransaction businessTransaction = new PutMeasurementBusinessTransaction(measurementDateTime,
+                                                                                                          sensorId,
                                                                                                           value);
 
       HibernateUtil.executeBusinessTransaction(businessTransaction);
       return businessTransaction.measurement;
       }
 
-   private static class GetMeasurementsBusinessTransaction
+   public static void main(final String[] argument)
+      throws Exception
+      {
+      final java.text.DateFormat   dateFormat         = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm");
+      final Date                   beginDateTime      = dateFormat.parse("2012-07-31 13:00");
+      final Date                   endDateTime        = dateFormat.parse("2012-08-02 13:00");
+      final long                   localityId         = 6;
+      final MeasurementManager     measurementManager = new MeasurementManager();
+      final Map<Date, Measurement> measurementMap     = measurementManager.getMeasurementMap(beginDateTime,
+                                                                                             endDateTime,
+                                                                                             localityId,
+                                                                                             "simulatedOccupancy");
+
+      System.out.println("Measurements:  " + measurementMap.size());
+      for (Map.Entry<Date, Measurement> entry:  measurementMap.entrySet())
+         {
+         final Measurement measurement = entry.getValue();
+
+         System.out.println(dateFormat.format(measurement.getMeasurementDateTime()) + ":  " + measurement.getValue());
+         }
+
+      final Date   measurementDateTime = dateFormat.parse("2012-08-01 00:00");
+      final long   sensorId            = 16;
+      final double value               = 0;
+
+      measurementManager.putMeasurement(measurementDateTime,
+                                        sensorId,
+                                        value);
+      }
+
+   private static class GetMeasurementMapBusinessTransaction
       implements BusinessTransactionInterface
       {
-      private final Date                   beginDateTime;
-      private final Date                   endDateTime;
-      private final long                   localityId;
-      private final Map<Date, Measurement> measurementMap = new HashMap<>();
-      private final String                 name;
+      private        final Date                   beginDateTime;
+      private static final String                 beginDateTimeAttributeName            = "beginDateTime";
+      private        final Date                   endDateTime;
+      private static final String                 endDateTimeAttributeName              = "endDateTime";
+      private static final String                 localityEntityName                    = "locality";
+      private        final long                   localityId;
+      private static final String                 localityIdAttributeName               = "id";
+      private static final String                 measurementEntityName                 = "measurement";
+      private static final String                 measurementDateTimeAliasName          = measurementEntityName + "." + measurementDateTimeAttributeName;
+      private        final Map<Date, Measurement> measurementMap                        = new TreeMap<>();
+      private static final String                 measurementTypeEntityName             = "measurementType";
+      private        final String                 name;
+      private static final String                 sensorPlatformEntityName              = "sensorPlatform";
+      private static final String                 sensorPlatformLocationAssociationName = "sensorPlatformLocationSet";
 
-      public GetMeasurementsBusinessTransaction(final Date   beginDateTime,
-                                                final Date   endDateTime,
-                                                final long   localityId,
-                                                final String name)
+      public GetMeasurementMapBusinessTransaction(final Date   beginDateTime,
+                                                  final Date   endDateTime,
+                                                  final long   localityId,
+                                                  final String name)
          {
          this.beginDateTime = beginDateTime;
          this.endDateTime = endDateTime;
@@ -70,8 +116,8 @@ public class MeasurementManager
          this.name = name;
          }
 
-      private List<Locality> getSubordinateLocalities(Locality       locality,
-                                                      List<Locality> localityList)
+      private List<Locality> getSubordinateLocalities(final Locality       locality,
+                                                      final List<Locality> localityList)
          {
          localityList.add(locality);
          for (Locality childLocality:  locality.getChildLocalitySet())
@@ -86,148 +132,146 @@ public class MeasurementManager
       public void execute()
          {
          final Session         session         = HibernateUtil.getSessionFactory().getCurrentSession();
-         final MeasurementType measurementType = (MeasurementType) session.createQuery("from MeasurementType as measurementType where measurementType.name = :name")
-                                                                          .setString("name", name)
+         final MeasurementType measurementType = (MeasurementType) session.createCriteria(MeasurementType.class)
+                                                                          .add(Restrictions.eq(nameAttributeName, name))
                                                                           .uniqueResult();
-         
 
          if (measurementType != null)
             {
-            final Criteria criteria      = session.createCriteria(Measurement.class);
-            final boolean  cumulative    = measurementType.isCumulative();
-            final Query    localityQuery = session.createQuery("from Locality as locality where locality.id = :localityId")
-                                                  .setLong("localityId", localityId);
-            final Locality locality      = (Locality) localityQuery.uniqueResult();
+            final Locality locality = (Locality) session.createCriteria(Locality.class)
+                                                        .add(Restrictions.eq(localityIdAttributeName, localityId))
+                                                        .uniqueResult();
 
-            if (cumulative)
+            if (locality != null)
                {
-               criteria.add(Restrictions.in("locality",
-                                            getSubordinateLocalities(locality,
-                                                                     new Vector<Locality>())));
-               }
-            else
-               {
-               criteria.add(Restrictions.eq("locality",
-                                            locality));
-               }
+               final boolean           cumulative      = measurementType.isCumulative();
+               @SuppressWarnings("unchecked")
+               final List<Measurement> measurementList = session.createCriteria(Measurement.class,
+                                                                                measurementEntityName)
+                                                                .add(Restrictions.between(measurementDateTimeAttributeName,
+                                                                                          beginDateTime,
+                                                                                          endDateTime))
+                                                                .addOrder(Order.asc(measurementDateTimeAttributeName))
+                                                                .createCriteria(sensorEntityName)
+                                                                .add(Restrictions.eq(measurementTypeEntityName,
+                                                                                     measurementType))
+                                                                .createCriteria(sensorPlatformEntityName)
+                                                                .createCriteria(sensorPlatformLocationAssociationName)
+                                                                .add(Restrictions.and(Restrictions.le(beginDateTimeAttributeName,
+                                                                                                      beginDateTime),
+                                                                                      Restrictions.leProperty(beginDateTimeAttributeName,
+                                                                                                              measurementDateTimeAliasName),
+                                                                                      Restrictions.or(Restrictions.isNull(endDateTimeAttributeName),
+                                                                                                      Restrictions.and(Restrictions.ge(endDateTimeAttributeName,
+                                                                                                                                       endDateTime),
+                                                                                                                       Restrictions.geProperty(endDateTimeAttributeName,
+                                                                                                                                               measurementDateTimeAliasName))),
+                                                                                      cumulative ? Restrictions.in(localityEntityName,
+                                                                                                                   getSubordinateLocalities(locality,
+                                                                                                                                            new Vector<Locality>())) :
+                                                                                                   Restrictions.eq(localityEntityName,
+                                                                                                                   locality)))
+                                                                .list();
 
-            @SuppressWarnings("unchecked")
-            final List<Measurement> measurementList = criteria.add(Restrictions.between(measurementDateTimeColumn,
-                                                                                        beginDateTime,
-                                                                                        endDateTime))
-                                                              .add(Restrictions.eq("measurementType",
-                                                                                   measurementType))
-                                                              .addOrder(Order.asc(measurementDateTimeColumn))
-                                                              .list();
-         // logger.debug("Measurements found:  " + measurementList.size());
-
-         // final Map<Date, Measurement> measurementMap = new HashMap<>();
-
-            for (Measurement measurement:  measurementList)
-               {
-               final Date measurementDateTime = measurement.getMeasurementDateTime();
-
-            // logger.debug("measurementDateTime:  " + new SimpleDateFormat("yyyy-MM-dd HH:mm").format(measurementDateTime));
-               if (cumulative)
+               for (final Measurement measurement:  measurementList)
                   {
-                  final double value = measurement.getValue();
+                  final Date measurementDateTime = measurement.getMeasurementDateTime();
 
-         //       logger.debug("value:  " + value);
-                  if (measurementMap.containsKey(measurement.getMeasurementDateTime()))
+                  if (cumulative)
                      {
-                     final Measurement cumulativeMeasurement = measurementMap.get(measurementDateTime);
+                     final Measurement cumulativeMeasurement;
+                     final double      value = measurement.getValue();
 
-                     cumulativeMeasurement.setValue(cumulativeMeasurement.getValue() + value);
-         //          logger.debug("occupancy:  " + cumulativeMeasurement.getOccupancy() + ", watts:  " + cumulativeMeasurement.getWatts());
+                     if (measurementMap.containsKey(measurement.getMeasurementDateTime()))
+                        {
+                        cumulativeMeasurement = measurementMap.get(measurementDateTime);
+                        cumulativeMeasurement.setValue(cumulativeMeasurement.getValue() + value);
+                        }
+                     else
+                        {
+                        cumulativeMeasurement = new Measurement();
+                        cumulativeMeasurement.setMeasurementDateTime(measurementDateTime);
+                        cumulativeMeasurement.setSensor(measurement.getSensor());
+                        cumulativeMeasurement.setValue(value);
+                        measurementMap.put(measurementDateTime, cumulativeMeasurement);
+                        }
                      }
                   else
                      {
-                     final Measurement cumulativeMeasurement = new Measurement();
-
-                     cumulativeMeasurement.setValue(value);
-                     measurementMap.put(measurementDateTime, cumulativeMeasurement);
-         //          logger.debug("occupancy:  " + cumulativeMeasurement.getOccupancy() + ", watts:  " + cumulativeMeasurement.getWatts());
+                     measurementMap.put(measurementDateTime, measurement);
                      }
-                  }
-               else
-                  {
-         //       logger.debug("dateTime:  " + simpleDateFormat.format(measurementDateTime) +
-         //                    ", carbonDioxide:  " + measurement.getCarbonDioxide() +
-         //                    ", humidity:  " + measurement.getHumidity() +
-         //                    ", light:  " + measurement.getLight() +
-         //                    ", temperature:  " + measurement.getTemperature());
-                  measurementMap.put(measurementDateTime, measurement);
                   }
                }
             }
          }
       }
 
+   private static class GetMeasurementTypeListBusinessTransaction
+      implements BusinessTransactionInterface
+      {
+      private List<MeasurementType> measurementTypeList = null;
+
+      @Override
+      @SuppressWarnings("unchecked")
+      public void execute()
+         {
+         measurementTypeList = HibernateUtil.getSessionFactory()
+                                            .getCurrentSession()
+                                            .createCriteria(MeasurementType.class)
+                                            .addOrder(Order.asc(nameAttributeName))
+                                            .list();
+         }
+      }
+
    private static class PutMeasurementBusinessTransaction
       implements BusinessTransactionInterface
       {
-      private final long        localityId;
       private       Measurement measurement;
       private final Date        measurementDateTime;
-      private final String      name;
+      private final long        sensorId;
       private final double      value;
 
-      public PutMeasurementBusinessTransaction(final long    localityId,
-                                               final Date    measurementDateTime,
-                                               final String  name,
+      public PutMeasurementBusinessTransaction(final Date    measurementDateTime,
+                                               final long    sensorId,
                                                final double  value)
          {
-         this.localityId = localityId;
          this.measurementDateTime = measurementDateTime;
-         this.name = name;
+         this.sensorId = sensorId;
          this.value = value;
          }
 
       @Override
       public void execute()
          {
-         final Session         session         = HibernateUtil.getSessionFactory().getCurrentSession();
-         final MeasurementType measurementType = (MeasurementType) session.createQuery("from MeasurementType as measurementType where measurementType.name = :name")
-                                                                          .setString("name", name).uniqueResult();
+         final Session     session     = HibernateUtil.getSessionFactory().getCurrentSession();
+               Measurement measurement = (Measurement) session.createCriteria(Measurement.class)
+                                                              .add(Restrictions.eq(measurementDateTimeAttributeName,
+                                                                                   measurementDateTime))
+                                                              .createCriteria(sensorEntityName)
+                                                              .add(Restrictions.idEq(sensorId))
+                                                              .uniqueResult();
 
-         if (measurementType != null)
+         if (measurement == null)
             {
-            final Query             localityQuery   = session.createQuery("from Locality as locality where locality.id = :localityId")
-                                                             .setLong("localityId", localityId);
-            final Locality          locality        = (Locality) localityQuery.uniqueResult();
-            final Criteria          criteria        = session.createCriteria(Measurement.class);
-            @SuppressWarnings("unchecked")
-            final List<Measurement> measurementList = criteria.add(Restrictions.eq("locality", locality))
-                                                              .add(Restrictions.eq("measurementType", measurementType))
-                                                              .add(Restrictions.eq(measurementDateTimeColumn, measurementDateTime))
-                                                              .list();
+            final Sensor sensor = (Sensor) session.createCriteria(Sensor.class)
+                                                  .add(Restrictions.idEq(sensorId))
+                                                  .uniqueResult();
 
-            switch (measurementList.size())
+            if (sensor != null)
                {
-               case 0:
-                  {
-                  measurement = new Measurement();
-                  locality.getMeasurementSet().add(measurement);
-                  measurement.setLocality(locality);
-                  measurement.setMeasurementDateTime(measurementDateTime);
-                  measurement.setMeasurementType(measurementType);
-                  measurement.setValue(value);
-                  session.saveOrUpdate(locality);
-                  session.saveOrUpdate(measurement);
-                  break;
-                  }
-               case 1:
-                  {
-                  measurement = measurementList.get(0);
-                  measurement.setValue(value);
-                  session.saveOrUpdate(measurement);
-                  break;
-                  }
-               default:
-                  {
-                  throw new IllegalStateException("Multiple states found for localityId = " + localityId + ", measurementTypeId = " + measurementType.getId() + " and measurementDateTime = " + measurementDateTime);
-                  }
+               measurement = new Measurement();
+               measurement.setMeasurementDateTime(measurementDateTime);
+               measurement.setSensor(sensor);
+               measurement.setValue(value);
+               sensor.getMeasurementSet().add(measurement);
+               session.saveOrUpdate(measurement);
+               session.saveOrUpdate(sensor);
                }
+            }
+         else
+            {
+            measurement.setValue(value);
+            session.saveOrUpdate(measurement);
             }
          }
       }

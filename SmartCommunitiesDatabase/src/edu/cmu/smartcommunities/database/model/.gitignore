@@ -2,3 +2,8 @@
 /Measurement.java
 /MeasurementIntent.java
 /MeasurementType.java
+/AbsoluteLocation.java
+/Sensor.java
+/SensorPlatform.java
+/SensorPlatformLocation.java
+/SymbolicLocation.java
