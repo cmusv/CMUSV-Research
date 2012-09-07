@@ -5,7 +5,6 @@ import edu.cmu.smartcommunities.database.model.Locality;
 import edu.cmu.smartcommunities.database.model.MeasurementType;
 import edu.cmu.smartcommunities.database.model.Sensor;
 import java.io.Serializable;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Vector;
 import org.hibernate.Session;
