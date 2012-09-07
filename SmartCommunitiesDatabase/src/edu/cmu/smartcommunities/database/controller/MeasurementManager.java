@@ -6,9 +6,11 @@ import edu.cmu.smartcommunities.database.model.Measurement;
 import edu.cmu.smartcommunities.database.model.MeasurementType;
 import edu.cmu.smartcommunities.database.model.Sensor;
 import java.io.Serializable;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.Vector;
 import org.hibernate.Session;
@@ -33,7 +35,10 @@ public class MeasurementManager
                                                                                                                 localityId,
                                                                                                                 name);
 
-      HibernateUtil.executeBusinessTransaction(businessTransaction);
+      synchronized (Measurement.class)
+         {
+         HibernateUtil.executeBusinessTransaction(businessTransaction);
+         }
       return businessTransaction.measurementMap;
       }
 
@@ -41,7 +46,10 @@ public class MeasurementManager
       {
       final GetMeasurementTypeListBusinessTransaction businessTransaction = new GetMeasurementTypeListBusinessTransaction();
 
-      HibernateUtil.executeBusinessTransaction(businessTransaction);
+      synchronized (Measurement.class)
+         {
+         HibernateUtil.executeBusinessTransaction(businessTransaction);
+         }
       return businessTransaction.measurementTypeList;
       }
 
@@ -53,8 +61,23 @@ public class MeasurementManager
                                                                                                           sensorId,
                                                                                                           value);
 
-      HibernateUtil.executeBusinessTransaction(businessTransaction);
+      synchronized (Measurement.class)
+         {
+         HibernateUtil.executeBusinessTransaction(businessTransaction);
+         }
       return businessTransaction.measurement;
+      }
+
+   public void putMeasurements(final List<Measurement> measurementList,
+                               final long              sensorId)
+      {
+      final PutMeasurementsBusinessTransaction businessTransaction = new PutMeasurementsBusinessTransaction(measurementList,
+                                                                                                            sensorId);
+
+      synchronized (Measurement.class)
+         {
+         HibernateUtil.executeBusinessTransaction(businessTransaction);
+         }
       }
 
    public static void main(final String[] argument)
@@ -85,6 +108,23 @@ public class MeasurementManager
       measurementManager.putMeasurement(measurementDateTime,
                                         sensorId,
                                         value);
+
+      final List<Measurement> measurementList = new Vector<>();
+      final Calendar          dateTime        = Calendar.getInstance();
+
+      dateTime.set(Calendar.SECOND, 0);
+      dateTime.set(Calendar.MILLISECOND, 0);
+      for (int minute = 0; minute < 60; minute++)
+         {
+         final Measurement measurement = new Measurement();
+
+         dateTime.set(Calendar.MINUTE, minute);
+         measurement.setMeasurementDateTime(new Date(dateTime.getTime().getTime()));
+         measurement.setValue(minute);
+         measurementList.add(measurement);
+         }
+      measurementManager.putMeasurements(measurementList,
+                                         sensorId);
       }
 
    private static class GetMeasurementMapBusinessTransaction
@@ -226,7 +266,7 @@ public class MeasurementManager
    private static class PutMeasurementBusinessTransaction
       implements BusinessTransactionInterface
       {
-      private       Measurement measurement;
+      private       Measurement measurement         = null;
       private final Date        measurementDateTime;
       private final long        sensorId;
       private final double      value;
@@ -243,14 +283,15 @@ public class MeasurementManager
       @Override
       public void execute()
          {
-         final Session     session     = HibernateUtil.getSessionFactory().getCurrentSession();
-               Measurement measurement = (Measurement) session.createCriteria(Measurement.class)
-                                                              .add(Restrictions.eq(measurementDateTimeAttributeName,
-                                                                                   measurementDateTime))
-                                                              .createCriteria(sensorEntityName)
-                                                              .add(Restrictions.idEq(sensorId))
-                                                              .uniqueResult();
+         final Session session = HibernateUtil.getSessionFactory()
+                                              .getCurrentSession();
 
+         measurement = (Measurement) session.createCriteria(Measurement.class)
+                                            .add(Restrictions.eq(measurementDateTimeAttributeName,
+                                                                 measurementDateTime))
+                                            .createCriteria(sensorEntityName)
+                                            .add(Restrictions.idEq(sensorId))
+                                            .uniqueResult();
          if (measurement == null)
             {
             final Sensor sensor = (Sensor) session.createCriteria(Sensor.class)
@@ -272,6 +313,44 @@ public class MeasurementManager
             {
             measurement.setValue(value);
             session.saveOrUpdate(measurement);
+            }
+         }
+      }
+
+   private static class PutMeasurementsBusinessTransaction
+      implements BusinessTransactionInterface
+      {
+      final List<Measurement> measurementList;
+      final long              sensorId;
+
+      public PutMeasurementsBusinessTransaction(final List<Measurement> measurementList,
+                                                final long              sensorId)
+         {
+         this.measurementList = measurementList;
+         this.sensorId = sensorId;
+         }
+
+      @Override
+      public void execute()
+         {
+         final Session session = HibernateUtil.getSessionFactory()
+                                              .getCurrentSession();
+         final Sensor  sensor  = (Sensor) session.get(Sensor.class, sensorId);
+
+         if (sensor != null)
+            {
+            final Set<Measurement> measurementSet = sensor.getMeasurementSet();
+
+            for (final Measurement measurement:  measurementList)
+               {
+               measurement.setSensor(sensor);
+               if (measurementSet.contains(measurement))
+                  {
+                  measurementSet.remove(measurement);
+                  }
+               measurementSet.add(measurement);
+               }
+            session.saveOrUpdate(sensor);
             }
          }
       }
