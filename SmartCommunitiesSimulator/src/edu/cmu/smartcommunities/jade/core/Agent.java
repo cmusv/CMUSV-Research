@@ -11,6 +11,8 @@ public class Agent
    {
    protected        final ExtendedProperties extendedProperties = new ExtendedProperties();
    protected        final Logger             logger             = LoggerFactory.getLogger(getClass());
+   protected              long               messagesReceived   = 0;
+   protected              long               messagesSent       = 0;
    private   static final long               serialVersionUID   = -1075797089153518750L;
 
    protected Agent()
@@ -51,6 +53,7 @@ public class Agent
       logger.trace("End   setExtendedProperties");
       }
 
+   @Override
    protected void setup()
       {
       logger.trace("Begin setup");
@@ -70,5 +73,11 @@ public class Agent
          setExtendedProperties(extendedProperty);
          }
       logger.trace("End   setup");
+      }
+
+   @Override
+   protected void takeDown()
+      {
+      logger.info("Messages received:  " + messagesReceived + ", messages sent:  " + messagesSent);
       }
    }
