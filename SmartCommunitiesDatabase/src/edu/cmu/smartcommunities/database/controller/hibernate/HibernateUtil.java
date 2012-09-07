@@ -63,9 +63,9 @@ public class HibernateUtil
          try
             {
             session = sessionFactory.getCurrentSession();
-            logger.info("After getCurrentSession");
+         // logger.info("After getCurrentSession");
             transaction = session.beginTransaction();
-            logger.info("After beginTransaction, active?  " + transaction.isActive());
+         // logger.info("After beginTransaction, active?  " + transaction.isActive());
             businessTransaction.execute();
             transaction.commit();
             }
