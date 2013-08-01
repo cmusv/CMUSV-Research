@@ -1,8 +1,8 @@
-#ServletHost=tesla.sv.cmu.edu
-ServletHost=mcsmith-z600
-curl -X PUT http://${ServletHost}/SmartCommunitiesServer/servlet?resource=measurements\&measurementDateTime=201308012000\&16=3\&70=2 && echo
-curl -X GET http://${ServletHost}/SmartCommunitiesServer/servlet?resource=measurements\&measurementDateTime=201308012005\&count=10\&localityId=6\&measurementType=simulatedOccupancy && echo
-curl -X GET http://${ServletHost}/SmartCommunitiesServer/servlet?resource=measurements\&measurementDateTime=201308012005\&count=10\&localityId=6\&measurementType=simulatedWatts && echo
+ServletHost=tesla.sv.cmu.edu
+#ServletHost=mcsmith-z600
+#curl -X PUT http://${ServletHost}/SmartCommunitiesServer/servlet?resource=measurements\&measurementDateTime=201308012000\&16=3\&70=2 && echo
+#curl -X GET http://${ServletHost}/SmartCommunitiesServer/servlet?resource=measurements\&measurementDateTime=201308012005\&count=10\&localityId=6\&measurementType=simulatedOccupancy && echo
+#curl -X GET http://${ServletHost}/SmartCommunitiesServer/servlet?resource=measurements\&measurementDateTime=201308012005\&count=10\&localityId=6\&measurementType=simulatedWatts && echo
 #curl -X PUT http://${ServletHost}/SmartCommunitiesServer/servlet?localityId=126\&measurementDateTime=201206042047\&light=0.0\&humidity=42.1\&temperature=20.8             && echo
 #curl -X GET http://${ServletHost}/SmartCommunitiesTestWeb/servlet?resource=measurements\&localityId=126\&count=4320\&measure=temperature                                   && echo
 #curl -X GET http://${ServletHost}/SmartCommunitiesTestWeb/servlet?resource=measurements\&localityId=126\&count=4320\&measure=temperature\&measurementDateTime=201207042359 && echo
@@ -20,4 +20,4 @@ curl -X GET http://${ServletHost}/SmartCommunitiesServer/servlet?resource=measur
 #curl -X GET http://${ServletHost}/SmartCommunitiesServer/servlet?resource=measurements\&localityId=6\&measurementDateTime=201206011230\&count=60\&measure=light         && echo
 #curl -X GET http://${ServletHost}/SmartCommunitiesServer/servlet?resource=measurements\&localityId=6\&measurementDateTime=201206011230\&count=60\&measure=occupancy     && echo
 #curl -X GET http://${ServletHost}/SmartCommunitiesServer/servlet?resource=measurements\&localityId=6\&measurementDateTime=201206011230\&count=60\&measure=temperature   && echo
-#curl -X GET http://${ServletHost}/SmartCommunitiesServer/servlet?resource=measurements\&localityId=6\&measurementDateTime=201206011230\&count=60\&measure=watts         && echo
+curl -X GET http://${ServletHost}/SmartCommunitiesServer/servlet?resource=measurements\&localityId=6\&measurementDateTime=201206011230\&count=60\&measure=watts         && echo
