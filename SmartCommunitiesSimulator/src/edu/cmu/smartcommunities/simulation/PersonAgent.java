@@ -10,7 +10,7 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 import java.io.IOException;
-import java.io.Serializable;
+//import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -18,6 +18,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 public class PersonAgent
    extends Agent
@@ -29,7 +30,7 @@ public class PersonAgent
    private        final DateFormat            dateTimeFormat             = new SimpleDateFormat(TimeAgent.iso8601DateTimeFormat);
    private              String                defaultWorkSpaceAgentName  = null;
    private        final String[]              meetingRoomAgentName       = new String[24 * 60];
-   private              String                movementModelFile          = null; // TODO:  get this from a property file.  don't use faculty
+// private              String                movementModelFile          = null; // TODO:  get this from a property file.  don't use faculty
    public  static final String                movementOntology           = className + ":Movement";
    private              double                percentMeetingTime         = 0;
    private              Calendar              preferredWorkStartDateTime = Calendar.getInstance();
@@ -64,7 +65,27 @@ public class PersonAgent
          topicManagementHelper = (TopicManagementHelper) getHelper(TopicManagementHelper.SERVICE_NAME);
          workStartDateTime = preferredWorkStartDateTime;
          workStopDateTime = preferredWorkStopDateTime;
-         addBehaviour(new ManageMeetingsBehaviour(this));
+
+         final String stochasticalMovementModelFileName = getProperty("StatisticalModelFileName", null);
+         
+         if (stochasticalMovementModelFileName == null)
+            {
+            addBehaviour(new ManageMeetingsBehaviour(this));
+            }
+         else
+            {
+            final StringTokenizer stringTokenizer       = new StringTokenizer(getProperty("MeetingRoomAgentNames", ""), ",");
+            final String[]        meetingRoomAgentNames = new String[stringTokenizer.countTokens()];
+
+            for (int i = 0; stringTokenizer.hasMoreTokens(); i++)
+               {
+               meetingRoomAgentNames[i] = stringTokenizer.nextToken().trim();
+               }
+            addBehaviour(new CreateAgendaAtMidnightBehaviour(this,
+                                                             stochasticalMovementModelFileName,
+                                                             getProperty("BreakRoomAgentName", "UnknownBreakRoom"),
+                                                             meetingRoomAgentNames));
+            }
          addBehaviour(new ReportAgendaBehaviour(this, 100, 3000));
          }
       catch (final ParseException parseException)
@@ -76,6 +97,215 @@ public class PersonAgent
          {
          logger.error("Unable to obtain the topic management helper.",
                       serviceException);
+         }
+      }
+
+   private class CreateAgendaAtMidnightBehaviour
+      extends CyclicBehaviour
+      {
+   // private        final String   defaultWorkSpaceAgentName    = "desk";
+      private        final String   breakRoomAgentName;
+   // private        final String[] meetingRoomAgentName        = new String[24 * 60];
+      private        final String[] meetingRoomAgentNameArray;
+
+      private        final MessageTemplate         messageTemplate  = MessageTemplate.MatchOntology(TimeAgent.timeSimulationOntology);
+      private        final StochasticMovementModel model;
+      private static final long                    serialVersionUID = 8741300705885943099L;
+
+      public CreateAgendaAtMidnightBehaviour(final Agent    agent,
+                                             final String   fileName,
+                                             final String   breakRoomAgentName,
+                                             final String[] meetingRoomAgentNameArray)
+         {
+         super(agent);
+         this.breakRoomAgentName = breakRoomAgentName;
+         model = new StochasticMovementModel(fileName);
+         this.meetingRoomAgentNameArray = meetingRoomAgentNameArray;
+         }
+      
+      public void action()
+         {
+         final ACLMessage inboundMessage = receive(messageTemplate);
+
+         if (inboundMessage == null)
+            {
+            block();
+            }
+         else
+            {
+            try
+               {
+               final Calendar simulatedDateTime = (Calendar) inboundMessage.getContentObject();
+
+               if (simulatedDateTime.get(Calendar.HOUR_OF_DAY) == 0 && simulatedDateTime.get(Calendar.MINUTE) == 0) // midnight
+                  {
+                  // S = Staff
+                  // F = Faculty (don't use this it doesn't have sufficient data)
+                  // P1 = PhD Student (Created with a lot of data)
+                  // P2 = PhD Student (Created with less data)
+                  // M = Masters Students
+
+                  int                     dayOfMonth = 0;
+                  WorkdayActivity         activity   = null;
+               // StochasticMovementModel t1         = new StochasticMovementModel( a_s__args[0] );
+
+                  model.initDay();
+                  for (int minute = meetingRoomAgentName.length - 1; minute >= 0; minute--)
+                     {
+                     meetingRoomAgentName[minute] = null;
+                     }
+                  do
+                     {
+                     model.nextActivity();
+                     System.out.println("Activity:  " + model.getActivity() + " at " + model.getActivityStartTime().getTime() + " for " + model.getActivityDuration() + " minutes");
+
+                     final Calendar dateTime    = model.getActivityStartTime();
+                     final int      beginMinute = dateTime.get(Calendar.HOUR_OF_DAY) * 60 + dateTime.get(Calendar.MINUTE);
+                     final int      duration    = model.getActivityDuration();
+
+                     switch (activity = model.getActivity())
+                        {
+                        case ARRIVAL:
+                           {
+                           // By default, the person will be at his/her desk until further notice.
+                           setLocation(dateTime,
+                                       dayOfMonth = dateTime.get(Calendar.DAY_OF_MONTH),
+                                       beginMinute,
+                                       meetingRoomAgentName.length,
+                                       defaultWorkSpaceAgentName);
+                           break;
+                           }
+                        case BREAK:
+                        case BREAK_AND_RESTROOM:
+                        case RESTROOM:
+                           {
+                           // Move to the break room.
+                           setLocation(dateTime,
+                                       dayOfMonth,
+                                       beginMinute,
+                                       beginMinute + duration,
+                                       breakRoomAgentName);
+                           break;
+                           }
+                        case DEPARTURE:
+                           {
+                           // Move to an unknown location for the balance of the day.
+                           setLocation(dateTime,
+                                       dayOfMonth,
+                                       beginMinute,
+                                       meetingRoomAgentName.length,
+                                       null);
+                           break;
+                           }
+                        case LEAVE_BUILDING:
+                           {
+                           // Move to an unknown location for the duration.
+                           setLocation(dateTime,
+                                       dayOfMonth,
+                                       beginMinute,
+                                       beginMinute + duration,
+                                       null);
+                           break;
+                           }
+                        case MEETING:
+                        case VISIT_OTHER_WORK_AREA:
+                           {
+                           // Move to a randomly selected meeting room.  (Maybe someone else will be there, but no guarantees.)
+                           setLocation(dateTime,
+                                       dayOfMonth,
+                                       beginMinute,
+                                       beginMinute + duration,
+                                       meetingRoomAgentNameArray[(int) (meetingRoomAgentNameArray.length * Math.random())]);
+                           break;
+                           }
+                        default:
+                           {
+                           System.out.println("Not yet implemented");
+                           }
+                        }
+                     }
+                  while (activity != WorkdayActivity.DEPARTURE);
+                  for (int minute = 0; minute < meetingRoomAgentName.length; minute++)
+                     {
+                     System.out.println("location[" + minute + "]:  " + meetingRoomAgentName[minute]);
+                     }
+                  }
+               }
+            catch (final UnreadableException unreadableException)
+               {
+               logger.error("Unable to get simulated time content object:  " + unreadableException.getMessage(),
+                            unreadableException);
+               }
+            }
+/*
+            final Calendar dateTime = (Calendar) inboundMessage.getContentObject();
+
+            if (dateTime.get(Calendar.HOUR_OF_DAY) == 0 && dateTime.get(Calendar.MINUTE) == 0) // midnight
+               {
+               model.initDay();
+               for (int minute = 0; minute < meetingRoomAgentName.length; minute++)
+                  {
+                  meetingRoomAgentName[minute] = null;
+                  }
+               model.nextActivity(); // burn the "UNKNOWN" activity and get to the "ARRIVAL" activity
+
+               Calendar startTime = model.getActivityStartTime();               
+
+               model.nextActivity();
+
+               Calendar endTime   = model.getActivityStartTime();
+
+               // Report to workspace room (startTime to endTime) was spent at desk
+               do
+                  {          
+                  startTime = model.getActivityStartTime();
+                  switch (model.getActivity())
+                     {
+                     case ARRIVAL:
+                        // pick the work location
+                        break;
+                     case BREAK:
+                     case BREAK_AND_RESTROOM:
+                     case RESTROOM:
+                        // pick the kitchen
+                        break;
+                     case MEETING:
+                     case VISIT_OTHER_WORK_AREA:
+                        // pick a room at random
+                        break;
+                     case LEAVE_BUILDING:
+                     default:
+                        // leave the meeting room agent name null
+                        break;
+                     }           
+                  int t = model.getActivityDuration();
+                  //Report to room_selected_from_case person was there from startTime for t mins
+                  startTime = startTime + t;
+                  model.nextActivity();           
+                  endTime = model.getActivityStartTime();
+                  //Report to workspace room (startTime to endTime) was spent at desk
+                  }
+               while (model.getActivity() != WorkdayActivity.DEPARTURE);
+               }
+            }
+*/
+         }
+
+      private void setLocation(final Calendar dateTime,
+                               final int      dayOfMonth,
+                               final int      beginMinute,
+                               final int      endMinute,
+                               final String   location)
+         {
+         if (dateTime.get(Calendar.DAY_OF_MONTH) == dayOfMonth)
+            {
+            final int safeEndMinute = Math.min(endMinute, meetingRoomAgentName.length);
+
+            for (int minute = beginMinute; minute < safeEndMinute; minute++)
+               {
+               meetingRoomAgentName[minute] = location;
+               }
+            }
          }
       }
 
@@ -210,7 +440,7 @@ public class PersonAgent
          logger.trace("End   ManageMeetingsBehaviour.action");
          }
       }
-
+/*
    private class MoveBehaviour
       extends CyclicBehaviour
       {
@@ -395,7 +625,7 @@ public class PersonAgent
          return aclMessage;
          }
       }
-
+*/
    private class ReportAgendaBehaviour
       extends TickerBehaviour
       {
@@ -471,7 +701,7 @@ public class PersonAgent
             }
          }
       }
-
+/*
    private static class Movement
       implements Serializable
       {
@@ -489,4 +719,5 @@ public class PersonAgent
          this.leavingRoomAgentName = leavingRoomAgentName;
          }
       }
+*/
    }
